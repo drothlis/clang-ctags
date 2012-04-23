@@ -1,4 +1,5 @@
 TEST_SOURCES := test/macros.cpp
+TEST_SOURCES += test/nested.cpp
 TEST_SOURCES += test/overload.cpp
 
 check: $(TEST_SOURCES:%.cpp=%.o)
