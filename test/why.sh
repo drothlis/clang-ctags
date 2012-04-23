@@ -34,3 +34,16 @@ assert_find_tag s macros.cpp:7
 # Prove that etags doesn't expand macros.
 assert_find_tag n1::s ""
 # TODO: C++ cases where etags fails -- complex nested types, templates, etc.
+
+# Prove that the tags-file user (emacs) will understand the format I intend to
+# generate.
+FF=$'\x0c'
+DEL=$'\x7f'
+SOH=$'\x01'
+cat > TAGS <<-EOF
+	$FF
+	macros.cpp,
+	struct s ${DEL}n1::s${SOH}7,132
+	EOF
+assert_find_tag n1::s macros.cpp:7
+assert_find_tag s macros.cpp:7
