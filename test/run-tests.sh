@@ -6,16 +6,22 @@ fail() { echo FAIL: $*; exit 1; }
 debug() { echo $* >&2; }
 
 assert_emacs() {
-    local forms="$1"
-    local expected="$2"
+    local forms print expected
+    forms="$1"
+    case $# in
+        2) expected="$2";;
+        3) print="(princ $2)"; expected="$3";;
+        *) return 1;;
+    esac
+    : ${print:='(princ (format "%s:%d"
+                               (file-name-nondirectory buffer-file-name)
+                               (line-number-at-pos)))'}
 
     local output=$(
         emacs -Q --batch --eval "(progn
             (visit-tags-table \"TAGS\")
             $forms
-            (princ (format \"%s:%d\"
-                           (file-name-nondirectory buffer-file-name)
-                           (line-number-at-pos))))")
+            $print)")
     debug $forms : $output
     [ "$output" == "$expected" ] ||
         fail "$forms: Expected '$expected', got '$output'"

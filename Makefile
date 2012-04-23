@@ -1,5 +1,9 @@
-check: test/macros.o
+TEST_SOURCES := test/macros.cpp
+TEST_SOURCES += test/overload.cpp
+
+check: $(TEST_SOURCES:%.cpp=%.o)
 	test/run-tests.sh
 
-test/macros.o: test/macros.cpp
-	clang++ -c $< -o $@
+$(TEST_SOURCES:%.cpp=%.o): %.o: %.cpp
+	clang++ -c $(TEST_CXXFLAGS) $< -o $@
+test/overload.o: TEST_CXXFLAGS = -Wno-return-type
