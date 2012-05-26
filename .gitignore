@@ -1,4 +1,9 @@
-test/TAGS
-test/*.o
+.DS_Store
+.emacs.desktop*
+clang-etags
+TAGS
+tags
 test/logs
+test/tags.custom-name
 test/tmp.cpp
+test/*.o
