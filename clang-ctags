@@ -8,11 +8,11 @@ def main(argv):
     index = clang.cindex.Index.create()
     tu = index.parse(None, argv)  # a Translation Unit
     for c in tu.cursor.get_children():
-        print_tags(c)
+        print_tags(c, tu.spelling)
 
 
-def print_tags(cursor):
-    if not cursor.location.file:
+def print_tags(cursor, filename):
+    if not cursor.location.file or cursor.location.file.name != filename:
         return
 
     if cursor.is_definition():
@@ -21,7 +21,7 @@ def print_tags(cursor):
             cursor.location.line, cursor.location.offset)
 
     for c in cursor.get_children():
-        print_tags(c)
+        print_tags(c, filename)
 
 
 if __name__ == "__main__":
