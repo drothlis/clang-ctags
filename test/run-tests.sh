@@ -27,6 +27,12 @@ assert_emacs() {
         fail "$forms: Expected '$expected', got '$output'"
 }
 
+assert_tag() {
+    local tagname="$1" position="$2"
+    grep -q "^$tagname $position\$" TAGS ||
+        fail "No tag '$tagname' '$position' in TAGS"
+}
+
 FF=$'\x0c'
 DEL=$'\x7f'
 SOH=$'\x01'
@@ -53,7 +59,7 @@ for t in ${testcases:-$(declare -F | awk '/ test_/ { print $3 }')}; do
         printf "$t ... "
         logfile=logs/$t.log
         mkdir -p "$(dirname $logfile)"
-        ( set -e; $t; ) &> $logfile
+        ( set -e; PATH="..:$PATH" $t; ) &> $logfile
         status=$?
         [ $status -eq 0 ] && echo "OK" || { echo "FAIL"; cat $logfile; echo; }
         exit $status

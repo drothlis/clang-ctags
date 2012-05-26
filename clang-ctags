@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+
+import sys
+import clang.cindex
+
+
+def main(argv):
+    index = clang.cindex.Index.create()
+    tu = index.parse(None, argv)  # a Translation Unit
+    for c in tu.cursor.get_children():
+        print_tags(c)
+
+
+def print_tags(cursor):
+    if cursor.is_definition():
+        print "%s %d,%d" % (
+            cursor.spelling,
+            cursor.location.line, cursor.location.offset)
+
+    for c in cursor.get_children():
+        print_tags(c)
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
