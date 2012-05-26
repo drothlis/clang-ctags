@@ -12,6 +12,9 @@ def main(argv):
 
 
 def print_tags(cursor):
+    if not cursor.location.file:
+        return
+
     if cursor.is_definition():
         print "%s %d,%d" % (
             cursor.spelling,
