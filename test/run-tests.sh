@@ -33,9 +33,10 @@ assert_tag() {
         fail "No tag '$tagname' '$position' in TAGS"
 }
 assert_no_tag() {
-    local tagname="$1"
-    ! grep -q "^$tagname" TAGS ||
-        fail "Unexpected tag '$tagname' in TAGS: $(grep "^$tagname" TAGS | head -1)"
+    local tagname="$1" position="${2:-}"
+    ! grep -q "^$tagname $position" TAGS ||
+        fail "Unexpected tag '$tagname' in TAGS: $(
+            grep "^$tagname $position" TAGS | head -1)"
 }
 
 FF=$'\x0c'
