@@ -18,3 +18,9 @@ test_header_files_arent_tagged() {
     clang-ctags include.h > TAGS
     assert_tag in_header 1,5
 }
+
+test_macro_expansion() {
+    clang-ctags macros.cpp > TAGS
+    assert_tag n1 6,120
+    assert_tag n1::s 7,139
+}
