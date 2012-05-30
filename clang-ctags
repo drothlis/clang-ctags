@@ -23,7 +23,7 @@ def print_tags(cursor, filename, parents = []):
             print tag(cursor, "::".join(parents[i:] + [cursor.spelling]))
 
     for c in cursor.get_children():
-        if cursor.kind == CursorKind.NAMESPACE:
+        if cursor.kind in [CursorKind.NAMESPACE, CursorKind.STRUCT_DECL]:
             p = parents + [cursor.spelling]
         else:
             p = parents

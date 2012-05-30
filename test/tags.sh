@@ -51,3 +51,10 @@ test_nested_scopes() {
     assert_tag ::s 9,96
     assert_tag s 9,96
 }
+
+test_struct_members() {
+    clang-ctags struct.cpp > TAGS
+    assert_tag s::i 2,19
+    assert_tag s::j 2,22
+    assert_tag s::s 3,35
+}
