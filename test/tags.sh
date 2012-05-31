@@ -58,3 +58,11 @@ test_struct_members() {
     assert_tag s::j 2,22
     assert_tag s::s 3,35
 }
+
+test_class_members() {
+    clang-ctags class.cpp > TAGS
+    assert_tag A 1,6
+    assert_tag A::member 3,26
+    assert_tag A::inline_method 6,92
+    assert_tag A::type 7,138
+}
