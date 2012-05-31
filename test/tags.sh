@@ -68,3 +68,8 @@ test_class_members() {
     assert_tag A::method 10,155
     assert_tag A::static_method 11,185
 }
+
+test_class_access_specifier_not_tagged() {
+    clang-ctags class.cpp > TAGS
+    assert_no_tag A:: 2,
+}
