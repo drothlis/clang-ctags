@@ -8,6 +8,9 @@ test_implicit_declarations_arent_tagged() {
     clang-ctags macros.cpp > TAGS
     assert_no_tag __int128_t
     assert_no_tag __va_list_tag
+
+    # Sanity check:
+    assert_tag n1 6,120
 }
 
 test_header_files_arent_tagged() {
@@ -72,4 +75,7 @@ test_class_members() {
 test_class_access_specifier_not_tagged() {
     clang-ctags class.cpp > TAGS
     assert_no_tag A:: 2,
+
+    # Sanity check:
+    assert_tag A 1,6
 }
