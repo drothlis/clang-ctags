@@ -79,3 +79,12 @@ test_class_access_specifier_not_tagged() {
     # Sanity check:
     assert_tag A 1,6
 }
+
+test_function_locals_arent_tagged() {
+    clang-ctags function-locals.cpp > TAGS
+    assert_no_tag x
+    assert_no_tag i
+
+    # Sanity check:
+    assert_tag "foo" 1,4
+}
