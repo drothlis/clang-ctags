@@ -19,7 +19,7 @@ test_header_files_arent_tagged() {
 
     # Sanity check:
     clang-ctags include.h > TAGS
-    assert_tag in_header 1,5
+    assert_tag "in_header()" 1,5
 }
 
 test_macro_expansion() {
@@ -66,10 +66,10 @@ test_class_members() {
     clang-ctags class.cpp > TAGS
     assert_tag A 1,6
     assert_tag A::member 3,26
-    assert_tag A::inline_method 6,92
+    assert_tag "A::inline_method()" 6,92
     assert_tag A::type 7,138
-    assert_tag A::method 10,155
-    assert_tag A::static_method 11,185
+    assert_tag "A::method()" 10,155
+    assert_tag "A::static_method()" 11,185
 }
 
 test_class_access_specifier_not_tagged() {
@@ -86,5 +86,18 @@ test_function_locals_arent_tagged() {
     assert_no_tag i
 
     # Sanity check:
-    assert_tag "foo" 1,4
+    assert_tag "foo(int)" 1,4
+}
+
+test_overloaded_functions() {
+    clang-ctags overload.cpp > TAGS
+    assert_tag "foo()" 1,4
+    assert_tag "foo(int)" 2,18
+    assert_tag "foo(int, int)" 3,37
+    assert_tag "foo(float)" 4,65
+}
+
+test_parameter_qualifiers() {
+    clang-ctags -e overload.cpp
+    assert_tag "bar(const int *const)" 6,88
 }
