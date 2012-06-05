@@ -11,27 +11,34 @@ def main(argv):
         print_tags(c, tu.spelling)
 
 
-def print_tags(cursor, filename, parents = []):
-    from clang.cindex import CursorKind
-
+def print_tags(cursor, filename):
     if not cursor.location.file or cursor.location.file.name != filename:
         return
 
     if cursor.is_definition():
+        parents = semantic_parents(cursor)
         print tag(cursor, "::" + "::".join(parents + [cursor.spelling]))
         for i in range(len(parents) + 1):
             print tag(cursor, "::".join(parents[i:] + [cursor.spelling]))
 
     for c in cursor.get_children():
-        if cursor.kind in [
-                CursorKind.NAMESPACE,
-                CursorKind.STRUCT_DECL,
-                CursorKind.CLASS_DECL,
-                ]:
-            p = parents + [cursor.spelling]
-        else:
-            p = parents
-        print_tags(c, filename, p)
+        print_tags(c, filename)
+
+
+def semantic_parents(cursor):
+    from clang.cindex import CursorKind
+    import collections
+
+    p = collections.deque()
+    c = cursor.semantic_parent
+    while c and c.kind in [
+            CursorKind.NAMESPACE,
+            CursorKind.STRUCT_DECL,
+            CursorKind.CLASS_DECL,
+            ]:
+        p.appendleft(c.spelling)
+        c = c.semantic_parent
+    return list(p)
 
 
 def tag(cursor, t):

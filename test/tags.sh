@@ -65,4 +65,6 @@ test_class_members() {
     assert_tag A::member 3,26
     assert_tag A::inline_method 6,92
     assert_tag A::type 7,138
+    assert_tag A::method 10,155
+    assert_tag A::static_method 11,185
 }
