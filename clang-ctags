@@ -63,6 +63,8 @@ class Etags:
     """
 
     def __init__(self, filename):
+        with open(filename) as f:
+            self.lines = f.readlines()
         self.out = StringIO.StringIO()
         self.out.write("\x0c\x0a" + filename + ",\x0a")
 
@@ -72,7 +74,7 @@ class Etags:
     def tag(self, cursor, tagname):
         """The complete tags file entry for symbol 'tag'."""
         self.out.write("%s\x7f%s\x01%d,%d\x0a" % (
-                "",  # no "pattern"
+                self.lines[cursor.location.line - 1].rstrip(),
                 tagname,
                 cursor.location.line, cursor.location.offset))
 
