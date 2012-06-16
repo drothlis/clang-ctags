@@ -29,14 +29,14 @@ assert_emacs() {
 
 assert_tag() {
     local tagname="$1" position="$2"
-    grep -q -F "$tagname $position" TAGS ||
+    grep -q -F "$DEL$tagname$SOH$position" TAGS ||
         fail "No tag '$tagname' '$position' in TAGS"
 }
 assert_no_tag() {
     local tagname="$1" position="${2:-}"
-    ! grep -q "^$tagname $position" TAGS ||
+    ! grep -q "$DEL$tagname$SOH$position" TAGS ||
         fail "Unexpected tag '$tagname' in TAGS: $(
-            grep "^$tagname $position" TAGS | head -1)"
+            grep "$DEL$tagname$SOH$position" TAGS | head -1)"
 }
 
 FF=$'\x0c'

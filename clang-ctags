@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
+import StringIO
 import sys
+
 import clang.cindex
 from clang.cindex import CursorKind
 
@@ -8,25 +10,25 @@ from clang.cindex import CursorKind
 def main(argv):
     index = clang.cindex.Index.create()
     tu = index.parse(None, argv)  # a Translation Unit
+    formatter = Etags(tu.spelling)
     for c in tu.cursor.get_children():
-        print_tags(c, tu.spelling)
+        do_tags(c, formatter, tu.spelling)
+    print formatter.getvalue()
 
 
-def print_tags(cursor, filename):
+def do_tags(cursor, formatter, filename):
     if not cursor.location.file or cursor.location.file.name != filename:
         return
 
     if is_definition(cursor):
         parents = semantic_parents(cursor)
-        print tag_entry(cursor,
-                        "::" + "::".join(parents + [cursor.displayname]))
+        formatter.tag(cursor, "::" + "::".join(parents + [cursor.displayname]))
         for i in range(len(parents) + 1):
-            print tag_entry(cursor,
-                            "::".join(parents[i:] + [cursor.displayname]))
+            formatter.tag(cursor, "::".join(parents[i:] + [cursor.displayname]))
 
     if is_named_scope(cursor):
         for c in cursor.get_children():
-            print_tags(c, filename)
+            do_tags(c, formatter, filename)
 
 
 def is_definition(cursor):
@@ -54,11 +56,25 @@ def is_named_scope(cursor):
         ]
 
 
-def tag_entry(cursor, t):
-    """The complete tags file entry for symbol t."""
-    return "%s %d,%d" % (
-        t,
-        cursor.location.line, cursor.location.offset)
+class Etags:
+    """Write tags in the format understood by Emacs.
+
+    See http://bzr.savannah.gnu.org/lh/emacs/trunk/annotate/head:/etc/ETAGS.EBNF
+    """
+
+    def __init__(self, filename):
+        self.out = StringIO.StringIO()
+        self.out.write("\x0c\x0a" + filename + ",\x0a")
+
+    def getvalue(self):
+        return self.out.getvalue()
+
+    def tag(self, cursor, tagname):
+        """The complete tags file entry for symbol 'tag'."""
+        self.out.write("%s\x7f%s\x01%d,%d\x0a" % (
+                "",  # no "pattern"
+                tagname,
+                cursor.location.line, cursor.location.offset))
 
 
 if __name__ == "__main__":
