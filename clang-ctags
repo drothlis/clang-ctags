@@ -9,7 +9,13 @@ from clang.cindex import CursorKind
 
 def main(argv):
     index = clang.cindex.Index.create()
-    tu = index.parse(None, argv)  # a Translation Unit
+    tu = index.parse(None, argv[1:])  # a Translation Unit
+    if len(tu.diagnostics) > 0:
+        for d in tu.diagnostics:
+            debug(d.spelling)
+        error("File '%s' failed clang's parsing and type-checking" %
+              tu.spelling)
+
     formatter = Etags(tu.spelling)
     for c in tu.cursor.get_children():
         do_tags(c, formatter, tu.spelling)
@@ -77,6 +83,16 @@ class Etags:
                 self.lines[cursor.location.line - 1].rstrip(),
                 tagname,
                 cursor.location.line, cursor.location.offset))
+
+
+def debug(s):
+    sys.stderr.write(s + "\n")
+
+
+def error(s):
+    from os.path import basename
+    sys.stderr.write("%s: Error: %s\n" % (basename(sys.argv[0]), s))
+    sys.exit(1)
 
 
 if __name__ == "__main__":

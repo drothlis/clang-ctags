@@ -39,6 +39,11 @@ assert_no_tag() {
             grep "$DEL$tagname$SOH$position" TAGS | head -1)"
 }
 
+srcfile() {
+    echo "$*" > tmp.cpp
+    echo "tmp.cpp"
+}
+
 FF=$'\x0c'
 DEL=$'\x7f'
 SOH=$'\x01'

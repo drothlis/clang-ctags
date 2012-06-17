@@ -1,3 +1,4 @@
 test/TAGS
 test/*.o
 test/logs
+test/tmp.cpp

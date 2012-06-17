@@ -101,3 +101,8 @@ test_parameter_qualifiers() {
     clang-ctags -e overload.cpp
     assert_tag "bar(const int *const)" 6,88
 }
+
+test_invalid_source_file_isnt_tagged() {
+    clang-ctags $(srcfile "booyah i;") &&
+    fail "Expected clang-ctags to fail" || true
+}
