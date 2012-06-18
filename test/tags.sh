@@ -106,3 +106,8 @@ test_invalid_source_file_isnt_tagged() {
     clang-ctags $(srcfile "booyah i;") &&
     fail "Expected clang-ctags to fail" || true
 }
+
+test_compiler_warnings_dont_prevent_tags() {
+    clang-ctags $(srcfile "int foo() { }") > TAGS
+    assert_tag "foo()"
+}

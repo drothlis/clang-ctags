@@ -5,7 +5,7 @@ import sys
 import traceback
 
 import clang.cindex
-from clang.cindex import CursorKind
+from clang.cindex import CursorKind, Diagnostic
 
 
 def main(argv):
@@ -16,9 +16,10 @@ def main(argv):
     except Exception as e:
         debug(traceback.format_exc())
         error("Clang failed to parse " + " ".join(argv[1:]))
-    if len(tu.diagnostics) > 0:
-        for d in tu.diagnostics:
-            debug(d.spelling)
+    errors = [d for d in tu.diagnostics
+              if d.severity in (Diagnostic.Error, Diagnostic.Fatal)]
+    if len(errors) > 0:
+        debug("\n".join([d.spelling for d in errors]))
         error("File '%s' failed clang's parsing and type-checking" %
               tu.spelling)
 

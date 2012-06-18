@@ -29,7 +29,9 @@ assert_emacs() {
 
 assert_tag() {
     local tagname="$1" position="$2"
-    grep -q -F "$DEL$tagname$SOH$position" TAGS ||
+    local search="$DEL$tagname$SOH"
+    [ -z "$position" ] || search+="$position"
+    grep -q -F "$search" TAGS ||
         fail "No tag '$tagname' '$position' in TAGS"
 }
 assert_no_tag() {
