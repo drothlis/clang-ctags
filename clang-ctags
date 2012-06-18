@@ -2,6 +2,7 @@
 
 import StringIO
 import sys
+import traceback
 
 import clang.cindex
 from clang.cindex import CursorKind
@@ -9,7 +10,12 @@ from clang.cindex import CursorKind
 
 def main(argv):
     index = clang.cindex.Index.create()
-    tu = index.parse(None, argv[1:])  # a Translation Unit
+
+    try:
+        tu = index.parse(None, argv[1:])  # a Translation Unit
+    except Exception as e:
+        debug(traceback.format_exc())
+        error("Clang failed to parse " + " ".join(argv[1:]))
     if len(tu.diagnostics) > 0:
         for d in tu.diagnostics:
             debug(d.spelling)
