@@ -72,6 +72,7 @@ for t in ${testcases:-$(declare -F | awk '/ test_/ { print $3 }')}; do
         printf "$t ... "
         logfile=logs/$t.log
         mkdir -p "$(dirname $logfile)"
+        rm -f TAGS tags
         ( set -e; PATH="..:$PATH" $t; ) &> $logfile
         status=$?
         [ $status -eq 0 ] && echo "OK" || { echo "FAIL"; cat $logfile; echo; }

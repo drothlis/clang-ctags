@@ -1,11 +1,11 @@
 test_basic_tags() {
-    clang-ctags macros.cpp > TAGS
+    clang-ctags -e macros.cpp
     assert_tag n1 6,120
     assert_tag s 7,139
 }
 
 test_implicit_declarations_arent_tagged() {
-    clang-ctags macros.cpp > TAGS
+    clang-ctags -e macros.cpp
     assert_no_tag __int128_t
     assert_no_tag __va_list_tag
 
@@ -14,22 +14,22 @@ test_implicit_declarations_arent_tagged() {
 }
 
 test_header_files_arent_tagged() {
-    clang-ctags include.cpp > TAGS
+    clang-ctags -e include.cpp
     assert_no_tag in_header
 
     # Sanity check:
-    clang-ctags include.h > TAGS
+    clang-ctags -e include.h
     assert_tag "in_header()" 1,5
 }
 
 test_macro_expansion() {
-    clang-ctags macros.cpp > TAGS
+    clang-ctags -e macros.cpp
     assert_tag n1 6,120
     assert_tag n1::s 7,139
 }
 
 test_nested_scopes() {
-    clang-ctags nested.cpp > TAGS
+    clang-ctags -e nested.cpp
 
     assert_tag ::n1 1,10
     assert_tag n1 1,10
@@ -56,14 +56,14 @@ test_nested_scopes() {
 }
 
 test_struct_members() {
-    clang-ctags struct.cpp > TAGS
+    clang-ctags -e struct.cpp
     assert_tag s::i 2,19
     assert_tag s::j 2,22
     assert_tag s::s 3,35
 }
 
 test_class_members() {
-    clang-ctags class.cpp > TAGS
+    clang-ctags -e class.cpp
     assert_tag A 1,6
     assert_tag A::member 3,26
     assert_tag "A::inline_method()" 6,92
@@ -73,7 +73,7 @@ test_class_members() {
 }
 
 test_class_access_specifier_not_tagged() {
-    clang-ctags class.cpp > TAGS
+    clang-ctags -e class.cpp
     assert_no_tag A:: 2,
 
     # Sanity check:
@@ -81,7 +81,7 @@ test_class_access_specifier_not_tagged() {
 }
 
 test_function_locals_arent_tagged() {
-    clang-ctags function-locals.cpp > TAGS
+    clang-ctags -e function-locals.cpp
     assert_no_tag x
     assert_no_tag i
 
@@ -90,7 +90,7 @@ test_function_locals_arent_tagged() {
 }
 
 test_overloaded_functions() {
-    clang-ctags overload.cpp > TAGS
+    clang-ctags -e overload.cpp
     assert_tag "foo()" 1,4
     assert_tag "foo(int)" 2,18
     assert_tag "foo(int, int)" 3,37
@@ -103,11 +103,11 @@ test_parameter_qualifiers() {
 }
 
 test_invalid_source_file_isnt_tagged() {
-    clang-ctags $(srcfile "booyah i;") &&
+    clang-ctags -e $(srcfile "booyah i;") &&
     fail "Expected clang-ctags to fail" || true
 }
 
 test_compiler_warnings_dont_prevent_tags() {
-    clang-ctags $(srcfile "int foo() { }") > TAGS
+    clang-ctags -e $(srcfile "int foo() { }")
     assert_tag "foo()"
 }

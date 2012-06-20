@@ -9,13 +9,18 @@ from clang.cindex import CursorKind, Diagnostic
 
 
 def main(argv):
+    global args
+    args = parse_args(argv)
+
     index = clang.cindex.Index.create()
 
     try:
-        tu = index.parse(None, argv[1:])  # a Translation Unit
+        tu = index.parse(None, args.compiler_command_line) # a Translation Unit
     except Exception as e:
         debug(traceback.format_exc())
-        error("Clang failed to parse " + " ".join(argv[1:]))
+        error("Clang failed to parse " +
+              " ".join(args.compiler_command_line))
+
     errors = [d for d in tu.diagnostics
               if d.severity in (Diagnostic.Error, Diagnostic.Fatal)]
     if len(errors) > 0:
@@ -23,10 +28,15 @@ def main(argv):
         error("File '%s' failed clang's parsing and type-checking" %
               tu.spelling)
 
-    formatter = Etags(tu.spelling)
+    formatter = Etags(tu.spelling) if args.etags else Ctags(tu.spelling)
     for c in tu.cursor.get_children():
         do_tags(c, formatter, tu.spelling)
-    print formatter.getvalue()
+
+    if args.output == "-":
+        out = sys.stdout
+    else:
+        out = open(args.output, ("a" if args.append else "w") + "b")
+    out.write(formatter.getvalue())
 
 
 def do_tags(cursor, formatter, filename):
@@ -92,8 +102,50 @@ class Etags:
                 cursor.location.line, cursor.location.offset))
 
 
+class Ctags:
+    """Write tags in the format understood by Vi.
+
+    Not yet implemented. The man page for Exuberant Ctags
+    (http://ctags.sourceforge.net) documents the tags file format.
+    """
+
+    def  __init__(self, filename):
+        error("Ctags (vi) format not implemented. "
+              "Use '-e' for etags (Emacs) format.")
+
+
+def parse_args(argv):
+    import argparse
+    import re
+
+    parser = argparse.ArgumentParser(
+        description="Generate tag file for C++ source code.",
+        usage="clang-ctags [-e] [-a] [-f file] [-v] -- compiler command line...")
+    parser.add_argument("-e", action="store_true",
+                        help='output tags in Emacs format (default: vi format)'
+                             ' (implied if the program name contains "etags")')
+    parser.add_argument("-a", "--append", action="store_true",
+                        help="append tag entries to existing tag file")
+    parser.add_argument("-f", "-o", "--output", metavar="FILE",
+                        help='write the tags to %(metavar)s;'
+                             ' "-" writes tags to stdout'
+                             ' (default: "tags", or "TAGS" when -e supplied)')
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="enable debugging output")
+    parser.add_argument("--version", action="version",
+                        version="clang-ctags 1.0rc")
+    parser.add_argument("compiler_command_line", nargs="+")
+
+    a = parser.parse_args(argv[1:])
+    a.etags = bool(a.e or re.search("etags", argv[0]))
+    if not a.output:
+        a.output = "TAGS" if a.etags else "tags"
+    return a
+
+
 def debug(s):
-    sys.stderr.write(s + "\n")
+    if args.verbose:
+        sys.stderr.write(s + "\n")
 
 
 def error(s):
