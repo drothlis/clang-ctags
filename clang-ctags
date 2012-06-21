@@ -184,13 +184,47 @@ class Etags:
 class Ctags:
     """Write tags in the format understood by Vi.
 
-    Not yet implemented. The man page for Exuberant Ctags
-    (http://ctags.sourceforge.net) documents the tags file format.
+    Currently generates the basic, original vi format (what the
+    Exuberant Ctags man page calls "level 1"); doesn't generate the
+    "level 2" extension fields.
+
+    The man page for Exuberant Ctags (http://ctags.sourceforge.net)
+    documents the tags file format.
     """
 
     def  __init__(self):
-        error("Ctags (vi) format not implemented. "
-              "Use '-e' for etags (Emacs) format.")
+        self.tags = {}  # {file: [(line, tag, linenumber, bytenumber), ...]}
+        self.current_file_name = None
+        self.current_file_lines = None
+
+    def tag(self, cursor, tagname):
+        if self.current_file_name != os.path.realpath(cursor.location.file.name):
+            self.current_file_name = os.path.realpath(cursor.location.file.name)
+            with open(self.current_file_name) as f:
+                self.current_file_lines = f.readlines()
+
+        if self.current_file_name not in self.tags:
+            self.tags[self.current_file_name] = set()
+
+        self.tags[self.current_file_name].add((
+            self.current_file_lines[cursor.location.line - 1].rstrip(),
+            tagname,
+            cursor.location.line,
+            cursor.location.offset))
+
+    def getvalue(self):
+        out = StringIO.StringIO()
+        out.write("!_TAG_FILE_FORMAT\t1\t/basic format; no extension fields/\n")
+        out.write("!_TAG_FILE_SORTED\t0\t/0=unsorted, 1=sorted, 2=foldcase/\n")
+        out.write("!_TAG_PROGRAM_NAME\tclang-ctags\t//\n")
+        out.write("!_TAG_PROGRAM_URL\thttp://github.com/drothlis/clang-ctags\t//\n")
+        for f in self.tags:
+            for (line, t, n, _) in self.tags[f]:
+                out.write("%s\t%s\t%s\n" % (
+                    t,
+                    f,
+                    "/^%s$/" % line))
+        return out.getvalue()
 
 
 class cwd:
