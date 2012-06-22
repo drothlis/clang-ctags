@@ -28,6 +28,28 @@ test_macro_expansion() {
     assert_tag n1::s 7,139
 }
 
+test_function_locals_arent_tagged() {
+    clang-ctags -e function-locals.cpp
+    assert_no_tag x
+    assert_no_tag i
+
+    # Sanity check:
+    assert_tag "foo(int)" 1,4
+}
+
+test_overloaded_functions() {
+    clang-ctags -e overload.cpp
+    assert_tag "foo()" 1,4
+    assert_tag "foo(int)" 2,18
+    assert_tag "foo(int, int)" 3,37
+    assert_tag "foo(float)" 4,65
+}
+
+test_parameter_qualifiers() {
+    clang-ctags -e overload.cpp
+    assert_tag "bar(const int *const)" 6,88
+}
+
 test_nested_scopes() {
     clang-ctags -e nested.cpp
 
@@ -78,28 +100,6 @@ test_class_access_specifier_not_tagged() {
 
     # Sanity check:
     assert_tag A 1,6
-}
-
-test_function_locals_arent_tagged() {
-    clang-ctags -e function-locals.cpp
-    assert_no_tag x
-    assert_no_tag i
-
-    # Sanity check:
-    assert_tag "foo(int)" 1,4
-}
-
-test_overloaded_functions() {
-    clang-ctags -e overload.cpp
-    assert_tag "foo()" 1,4
-    assert_tag "foo(int)" 2,18
-    assert_tag "foo(int, int)" 3,37
-    assert_tag "foo(float)" 4,65
-}
-
-test_parameter_qualifiers() {
-    clang-ctags -e overload.cpp
-    assert_tag "bar(const int *const)" 6,88
 }
 
 test_invalid_source_file_isnt_tagged() {
