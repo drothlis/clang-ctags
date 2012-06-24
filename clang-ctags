@@ -57,6 +57,7 @@ def do_tags(cursor, formatter, filename):
 def is_definition(cursor):
     return cursor.is_definition() and not cursor.kind in [
         CursorKind.CXX_ACCESS_SPEC_DECL,
+        CursorKind.TEMPLATE_TYPE_PARAMETER,
         ]
 
 
@@ -76,6 +77,7 @@ def is_named_scope(cursor):
         CursorKind.NAMESPACE,
         CursorKind.STRUCT_DECL,
         CursorKind.CLASS_DECL,
+        CursorKind.CLASS_TEMPLATE,
         ]
 
 

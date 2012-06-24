@@ -102,6 +102,21 @@ test_class_access_specifier_not_tagged() {
     assert_tag A 1,6
 }
 
+test_class_template() {
+    clang-ctags -e template.cpp
+    assert_tag "B<T>" 2,28
+}
+
+test_templated_scope() {
+    clang-ctags -e template.cpp
+    assert_tag "B<T>::member" 4,46
+}
+
+test_method_template() {
+    clang-ctags -e template.cpp
+    assert_tag "B<T>::method(U)" 7,87
+}
+
 test_invalid_source_file_isnt_tagged() {
     clang-ctags -e $(srcfile "booyah i;") &&
     fail "Expected clang-ctags to fail" || true
