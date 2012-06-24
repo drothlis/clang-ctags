@@ -76,6 +76,8 @@ def is_named_scope(cursor):
     return cursor.kind in [
         CursorKind.NAMESPACE,
         CursorKind.STRUCT_DECL,
+        CursorKind.UNION_DECL,
+        CursorKind.ENUM_DECL,
         CursorKind.CLASS_DECL,
         CursorKind.CLASS_TEMPLATE,
         ]

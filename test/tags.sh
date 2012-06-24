@@ -84,6 +84,22 @@ test_struct_members() {
     assert_tag s::s 3,35
 }
 
+test_union_members() {
+    clang-ctags -e union.cpp
+    assert_tag u 1,6
+    assert_tag u::i 2,18
+    assert_tag u::j 3,29
+    assert_tag u::s 4,42
+}
+
+test_enum_members() {
+    clang-ctags -e enum.cpp
+    assert_tag E 1,5
+    assert_tag E::FIRST 2,13
+    assert_tag E::SECOND 3,28
+    assert_tag E::LAST 4,40
+}
+
 test_class_members() {
     clang-ctags -e class.cpp
     assert_tag A 1,6
