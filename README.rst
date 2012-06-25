@@ -1,0 +1,189 @@
+=============
+ clang-ctags
+=============
+
+-------------------------------------
+Generate tag file for C++ source code
+-------------------------------------
+
+:Copyright: Copyright (c) 2012 David Rothlisberger.
+:Author: David Rothlisberger <david@rothlis.net>
+:License: UIUC license (a BSD-like license; the same license as Clang).
+          See LICENSE file in source distribution for details.
+:Version: @VERSION@
+:Manual section: 1
+:Manual group: Clang Tools Documentation
+
+
+SYNOPSIS
+========
+
+clang-ctags [options] -- *compilation command line*
+
+clang-ctags [options] --compile-commands *path/to/compile_commands.json*
+                      *source-file* [*source-file*...]
+
+
+DESCRIPTION
+===========
+
+**clang-ctags** and **clang-etags** generate (in a format understood by Vi and
+Emacs, respectively) a "tag" file indexing the C++ definitions found in the
+specified files.
+
+(Hereafter both variants will be collectively referred to as clang-ctags,
+except where distiguished.)
+
+Note that only the Emacs (etags) format is currently implemented.
+
+Unlike other ctags implementations, clang-ctags uses a real C++ compiler
+(clang) to parse source files, allowing for more accurate indexing. (C++ is
+notoriously difficult to parse, and other ctags implementations rely on
+heuristics to disambiguate certain constructs.) Unlike other implementations,
+clang-ctags only understands C and C++ source files; and because clang-ctags
+needs to run each source file through the C pre-processor, its usage is
+somewhat more complicated than other ctags implementations.
+
+
+OPTIONS
+=======
+
+The command-line interface of clang-ctags is *not* compatible with GNU etags,
+Exuberant Ctags, or other existing ctags implementations. This is because
+clang-ctags needs the full compilation command line to pass on to clang.
+
+-a, --append
+    Append tag entries to existing tag file.
+
+-e
+    Output tags in Emacs format (the default is Vi format).
+    Implied if the program name contains "etags".
+
+-o tagfile, -f tagfile
+    Write the tags to *tagfile*; "-" writes tags to stdout
+    (the default is "tags", or "TAGS" when -e supplied).
+
+-v, --verbose
+    Print debugging information to stderr.
+
+--version
+    Print version identifier to stdout, and exit. This is guaranteed to always
+    contain the string "clang-ctags".
+
+--compile-commands *path/to/compile_commands.json*
+    A "compilation database" containing the compilation command line for every
+    source file in your project. See **Compilation database**, below.
+
+
+COMPILATION COMMAND LINE
+========================
+
+When called with the form **clang-ctags -- compilation command line**, the
+`compilation command line` is the full command line that you would pass to the
+C++ compiler if you were to compile the source file, excluding the name of the
+C++ compiler itself (i.e. argv[0]). This form can only process one source file
+per invocation, and is useful for running clang-ctags during a build.
+
+When called with the form
+**clang-ctags --compile-commands=compile_commands.json**, the compilation
+command line is taken from the specified file, described in **Compilation
+database**, below.
+
+In reality clang-ctags only needs the preprocessor flags (`-I`, `-D`, etc.) and
+the name of the source file, but it is often easier to pass the full
+compilation command line; clang-ctags will ignore linker flags and most
+compiler flags.
+
+Interposing the compiler to run clang-ctags during the build
+------------------------------------------------------------
+
+Most Unix makefile-based build systems allow the user to specify a compiler in
+the CC and CXX `make` variables. You can point these variables to a script that
+invokes clang-ctags, and then invokes the real compiler::
+
+    #!/bin/sh
+    clang-ctags -f tagfile --append -- "$@"
+    g++ "$@"
+
+Note that this is only useful when starting from a clean build and an empty tag
+file, because `clang-ctags --append` doesn't remove previous tags for a file
+that it has already processed. So you would end up with the up-to-date tags at
+the end of the tag file; Emacs will use the first, out of date, tag it finds.
+
+Note that autoconf-generated `configure` scripts create makefiles with
+hard-coded paths to the compiler, so you will need to set CC and CXX when
+running `configure`.
+
+Prior art for this technique:
+
+* clang itself has a perl script called `scan-build` that invokes the clang
+  static analyser with the full compilation command line. You run it with::
+
+    scan-build make
+
+  http://clang-analyzer.llvm.org/scan-build.html
+  http://llvm.org/svn/llvm-project/cfe/trunk/tools/scan-build/scan-build
+
+* `clang_complete`, a Vim plugin for code completion, provides a python script
+  called `cc_args.py` that saves compilation command lines into a database (in
+  clang_complete's own custom format, not the format we describe below). You
+  run it with::
+
+    make CC='cc_args.py gcc' CXX='cc_args.py g++'
+
+  https://github.com/Rip-Rip/clang_complete/blob/master/bin/cc_args.py
+  https://github.com/Rip-Rip/clang_complete/blob/master/doc/clang_complete.txt#L237
+
+* `gccsense`, a code completion tool based on gcc, provides a ruby script
+  called `gccrec` that is similar in usage and function to clang_complete's
+  cc_args.py.
+
+  http://cx4a.org/software/gccsense/manual.html#gccrec
+
+Compilation database
+--------------------
+
+If you build your C++ project with CMake, you can generate a database of
+compilation commands with::
+
+    cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+
+The format of this compilation database is documented at
+http://clang.llvm.org/docs/JSONCompilationDatabase.html.
+
+clang-ctags understands the format of this database (and so do some other
+clang-based tools).
+
+If you don't use cmake, and you're feeling energetic, you could even write a
+script that uses the technique from the previous section, to generate a
+compilation database in this format. (If you do, let me know!)
+
+
+INSTALLING
+==========
+
+**clang-ctags** requires *libclang* version 3.2 or greater, and the libclang
+*python bindings* (libclang and its python bindings are both part of the
+official clang project).
+
+libclang and its python bindings may be available from your system's package
+manager (probably in the *clang* or *clang-devel* package). You can test the
+python bindings by running the *python* interpreter and typing::
+
+    import clang.cindex
+
+If you see a python ImportError, you will need to build clang from source (see
+http://clang.llvm.org/get_started.html), point LD_LIBRARY_PATH at the built
+*libclang.so* (on OS X: DYLD_LIBRARY_PATH and libclang.dylib), and point
+PYTHONPATH at *bindings/python/* in the clang source directory.
+
+Please help me out by pestering your system's maintainers to include libclang
+and its python bindings in the official clang package for your system (Debian,
+Ubuntu, FreeBSD, MacPorts, etc).
+
+
+SEE ALSO
+========
+
+* http://david.rothlis.net/clang-ctags
+* http://github.com/drothlis/clang-ctags
