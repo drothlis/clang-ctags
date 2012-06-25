@@ -1,6 +1,8 @@
 .DS_Store
 .emacs.desktop*
 clang-etags
+clang-ctags.1
+clang-etags.1
 TAGS
 tags
 test/compile_commands.json
@@ -8,3 +10,5 @@ test/logs
 test/tags.custom-name
 test/tmp.cpp
 test/*.o
+test/subdir/*.o
+VERSION
