@@ -88,6 +88,7 @@ def is_named_scope(cursor):
         CursorKind.ENUM_DECL,
         CursorKind.CLASS_DECL,
         CursorKind.CLASS_TEMPLATE,
+        CursorKind.CLASS_TEMPLATE_PARTIAL_SPECIALIZATION,
         ]
 
 

@@ -125,17 +125,29 @@ test_class_access_specifier_not_tagged() {
 
 test_class_template() {
     clang-ctags -e template.cpp
-    assert_tag "B<T>" 2,28
+    assert_tag "B<T, U>" 2,40
 }
 
 test_templated_scope() {
     clang-ctags -e template.cpp
-    assert_tag "B<T>::member" 4,46
+    assert_tag "B<T, U>::member" 4,58
 }
 
 test_method_template() {
     clang-ctags -e template.cpp
-    assert_tag "B<T>::method(U)" 7,87
+    assert_tag "B<T, U>::method(V)" 7,99
+}
+
+test_template_specialisation() {
+    clang-ctags -e template.cpp
+    assert_tag "B<int, int>" 14,195
+    assert_tag "B<int, int>::member" 16,225
+}
+
+test_template_partial_specialisation() {
+    clang-ctags -e template.cpp
+    assert_tag "B<T, int>" 24,357
+    assert_tag "B<T, int>::member" 26,383
 }
 
 test_invalid_source_file_isnt_tagged() {
