@@ -100,6 +100,11 @@ test_enum_members() {
     assert_tag E::LAST 4,40
 }
 
+test_linkage_spec_children() {
+    clang-ctags -e linkage.cpp
+    assert_tag i 2,21
+}
+
 test_class_members() {
     clang-ctags -e class.cpp
     assert_tag A 1,6

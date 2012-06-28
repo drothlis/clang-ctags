@@ -49,7 +49,7 @@ def do_tags(cursor, formatter, filename):
         for i in range(len(parents) + 1):
             formatter.tag(cursor, "::".join(parents[i:] + [cursor.displayname]))
 
-    if is_named_scope(cursor):
+    if should_tag_children(cursor):
         for c in cursor.get_children():
             do_tags(c, formatter, filename)
 
@@ -58,6 +58,7 @@ def is_definition(cursor):
     return cursor.is_definition() and not cursor.kind in [
         CursorKind.CXX_ACCESS_SPEC_DECL,
         CursorKind.TEMPLATE_TYPE_PARAMETER,
+        CursorKind.UNEXPOSED_DECL,
         ]
 
 
@@ -70,6 +71,13 @@ def semantic_parents(cursor):
         p.appendleft(c.displayname)
         c = c.semantic_parent
     return list(p)
+
+
+def should_tag_children(cursor):
+    return is_named_scope(cursor) or cursor.kind in [
+        # 'extern "C" { ... }' should be LINKAGE_SPEC but is UNEXPOSED_DECL
+        CursorKind.UNEXPOSED_DECL,
+        ]
 
 
 def is_named_scope(cursor):
