@@ -30,8 +30,7 @@ test_dash_e_format() {
 }
 
 test_etags_format() {
-    ln -sf $(which clang-ctags) ./clang-etags
-    ./clang-etags $(srcfile "int i;")
+    clang-etags $(srcfile "int i;")
     assert_tag i
 }
 
@@ -41,8 +40,7 @@ test_dash_e_output_file_name() {
 }
 
 test_etags_output_file_name() {
-    ln -sf $(which clang-ctags) ./clang-etags
-    ./clang-etags $(srcfile "int i;")
+    clang-etags $(srcfile "int i;")
     [ -f TAGS ] || fail "Didn't create 'TAGS'"
 }
 

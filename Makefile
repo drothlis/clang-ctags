@@ -2,7 +2,7 @@ TEST_SOURCES := test/macros.cpp
 TEST_SOURCES += test/nested.cpp
 TEST_SOURCES += test/overload.cpp
 
-check: $(TEST_SOURCES:%.cpp=%.o)
+check: $(TEST_SOURCES:%.cpp=%.o) clang-etags
 	test/run-tests.sh
 
 $(TEST_SOURCES:%.cpp=%.o): %.o: %.cpp
