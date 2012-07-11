@@ -12,25 +12,9 @@ def main(argv):
     global args
     args = parse_args(argv)
 
-    index = clang.cindex.Index.create()
+    formatter = Etags() if args.etags else Ctags()
 
-    try:
-        tu = index.parse(None, args.compiler_command_line) # a Translation Unit
-    except Exception as e:
-        debug(traceback.format_exc())
-        error("Clang failed to parse " +
-              " ".join(args.compiler_command_line))
-
-    errors = [d for d in tu.diagnostics
-              if d.severity in (Diagnostic.Error, Diagnostic.Fatal)]
-    if len(errors) > 0:
-        debug("\n".join([d.spelling for d in errors]))
-        error("File '%s' failed clang's parsing and type-checking" %
-              tu.spelling)
-
-    formatter = Etags(tu.spelling) if args.etags else Ctags(tu.spelling)
-    for c in tu.cursor.get_children():
-        do_tags(c, formatter, tu.spelling)
+    do_tags(args.compiler_command_line, formatter)
 
     if args.output == "-":
         out = sys.stdout
@@ -39,7 +23,26 @@ def main(argv):
     out.write(formatter.getvalue())
 
 
-def do_tags(cursor, formatter, filename):
+def do_tags(compiler_command_line, formatter):
+    index = clang.cindex.Index.create()
+    try:
+        tu = index.parse(None, compiler_command_line)  # a Translation Unit
+    except Exception as e:
+        debug(traceback.format_exc())
+        error("Clang failed to parse '%s'" % " ".join(compiler_command_line))
+
+    errors = [d for d in tu.diagnostics
+              if d.severity in (Diagnostic.Error, Diagnostic.Fatal)]
+    if len(errors) > 0:
+        debug("\n".join([d.spelling for d in errors]))
+        error("File '%s' failed clang's parsing and type-checking" %
+              tu.spelling)
+
+    for c in tu.cursor.get_children():
+        do_cursor(c, formatter, tu.spelling)
+
+
+def do_cursor(cursor, formatter, filename):
     if not cursor.location.file or cursor.location.file.name != filename:
         return
 
@@ -51,7 +54,7 @@ def do_tags(cursor, formatter, filename):
 
     if should_tag_children(cursor):
         for c in cursor.get_children():
-            do_tags(c, formatter, filename)
+            do_cursor(c, formatter, filename)
 
 
 def is_definition(cursor):
@@ -98,17 +101,20 @@ class Etags:
     See http://bzr.savannah.gnu.org/lh/emacs/trunk/annotate/head:/etc/ETAGS.EBNF
     """
 
-    def __init__(self, filename):
-        with open(filename) as f:
-            self.lines = f.readlines()
+    def __init__(self):
+        self.lines = None
         self.out = StringIO.StringIO()
-        self.out.write("\x0c\x0a" + filename + ",\x0a")
 
     def getvalue(self):
         return self.out.getvalue()
 
     def tag(self, cursor, tagname):
         """The complete tags file entry for symbol 'tag'."""
+        if not self.lines:
+            with open(cursor.location.file.name) as f:
+                self.lines = f.readlines()
+            self.out.write("\x0c\x0a" + cursor.location.file.name + ",\x0a")
+
         self.out.write("%s\x7f%s\x01%d,%d\x0a" % (
                 self.lines[cursor.location.line - 1].rstrip(),
                 tagname,
@@ -122,7 +128,7 @@ class Ctags:
     (http://ctags.sourceforge.net) documents the tags file format.
     """
 
-    def  __init__(self, filename):
+    def  __init__(self):
         error("Ctags (vi) format not implemented. "
               "Use '-e' for etags (Emacs) format.")
 
