@@ -4,4 +4,9 @@
     "command": "g++ -c -DMYMACRO=a subdir/a.cpp",
     "file": "subdir/a.cpp",
 },
+{
+    "directory": ".",
+    "command": "g++ -c subdir/b.cpp",
+    "file": "subdir/b.cpp",
+},
 ]

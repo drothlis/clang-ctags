@@ -23,7 +23,7 @@ def main(argv):
             debug("Processing " + f)
             for c in db.getCompileCommands(f) or []:
                 debug("* Found compile command: " + " ".join(list(c.arguments)))
-                do_tags(list(c.arguments)[1:], formatter)
+                do_tags(list(c.arguments)[1:], formatter, args.source_files)
     else:
         do_tags(args.compiler_command_line, formatter)
 
@@ -34,7 +34,7 @@ def main(argv):
     out.write(formatter.getvalue())
 
 
-def do_tags(compiler_command_line, formatter):
+def do_tags(compiler_command_line, formatter, source_files=[]):
     index = clang.cindex.Index.create()
     try:
         tu = index.parse(None, compiler_command_line)  # a Translation Unit
@@ -49,12 +49,16 @@ def do_tags(compiler_command_line, formatter):
         error("File '%s' failed clang's parsing and type-checking" %
               tu.spelling)
 
+    if not source_files:
+        source_files = [tu.spelling]
+
     for c in tu.cursor.get_children():
-        do_cursor(c, formatter, tu.spelling)
+        do_cursor(c, formatter, source_files)
 
 
-def do_cursor(cursor, formatter, filename):
-    if not cursor.location.file or cursor.location.file.name != filename:
+def do_cursor(cursor, formatter, source_files):
+    if (not cursor.location.file or
+                cursor.location.file.name not in source_files):
         return
 
     if is_definition(cursor):
@@ -65,7 +69,7 @@ def do_cursor(cursor, formatter, filename):
 
     if should_tag_children(cursor):
         for c in cursor.get_children():
-            do_cursor(c, formatter, filename)
+            do_cursor(c, formatter, source_files)
 
 
 def is_definition(cursor):
@@ -113,23 +117,33 @@ class Etags:
     """
 
     def __init__(self):
-        self.lines = None
-        self.out = StringIO.StringIO()
-
-    def getvalue(self):
-        return self.out.getvalue()
+        self.tags = {}  # {file: [(line, tag, linenumber, bytenumber), ...]}
+        self.current_file_name = None
+        self.current_file_lines = None
 
     def tag(self, cursor, tagname):
         """The complete tags file entry for symbol 'tag'."""
-        if not self.lines:
-            with open(cursor.location.file.name) as f:
-                self.lines = f.readlines()
-            self.out.write("\x0c\x0a" + cursor.location.file.name + ",\x0a")
+        if self.current_file_name != cursor.location.file.name:
+            self.current_file_name = cursor.location.file.name
+            with open(self.current_file_name) as f:
+                self.current_file_lines = f.readlines()
 
-        self.out.write("%s\x7f%s\x01%d,%d\x0a" % (
-                self.lines[cursor.location.line - 1].rstrip(),
-                tagname,
-                cursor.location.line, cursor.location.offset))
+        if self.current_file_name not in self.tags:
+            self.tags[self.current_file_name] = []
+
+        self.tags[self.current_file_name].append((
+            self.current_file_lines[cursor.location.line - 1].rstrip(),
+            tagname,
+            cursor.location.line,
+            cursor.location.offset))
+
+    def getvalue(self):
+        out = StringIO.StringIO()
+        for f in self.tags:
+            out.write("\x0c\x0a" + f + ",\x0a")
+            for t in self.tags[f]:
+                out.write("%s\x7f%s\x01%d,%d\x0a" % t)
+        return out.getvalue()
 
 
 class Ctags:
