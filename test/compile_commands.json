@@ -1,0 +1,7 @@
+[
+{
+    "directory": ".",
+    "command": "g++ -c -DMYMACRO=a subdir/a.cpp",
+    "file": "subdir/a.cpp",
+},
+]

@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
+import os.path
 import StringIO
 import sys
 import traceback
 
 import clang.cindex
-from clang.cindex import CursorKind, Diagnostic
+from clang.cindex import CompilationDatabase, CursorKind, Diagnostic
 
 
 def main(argv):
@@ -14,7 +15,17 @@ def main(argv):
 
     formatter = Etags() if args.etags else Ctags()
 
-    do_tags(args.compiler_command_line, formatter)
+    if args.compile_commands:
+        db = CompilationDatabase.fromDirectory(
+            args.compile_commands if os.path.isdir(args.compile_commands)
+            else os.path.dirname(args.compile_commands))
+        for f in args.source_files:
+            debug("Processing " + f)
+            for c in db.getCompileCommands(f) or []:
+                debug("* Found compile command: " + " ".join(list(c.arguments)))
+                do_tags(list(c.arguments)[1:], formatter)
+    else:
+        do_tags(args.compiler_command_line, formatter)
 
     if args.output == "-":
         out = sys.stdout
@@ -139,7 +150,9 @@ def parse_args(argv):
 
     parser = argparse.ArgumentParser(
         description="Generate tag file for C++ source code.",
-        usage="clang-ctags [-e] [-a] [-f file] [-v] -- compiler command line...")
+        usage="\nclang-ctags [options] -- <compiler command line>"
+              "\nclang-ctags [options] --compile-commands=<compile_commands.json>"
+              " <source-file> ...")
     parser.add_argument("-e", action="store_true",
                         help='output tags in Emacs format (default: vi format)'
                              ' (implied if the program name contains "etags")')
@@ -153,12 +166,18 @@ def parse_args(argv):
                         help="enable debugging output")
     parser.add_argument("--version", action="version",
                         version="clang-ctags 1.0rc")
-    parser.add_argument("compiler_command_line", nargs="+")
+    parser.add_argument("--compile-commands", metavar="COMPILE_COMMANDS.JSON",
+        help="database of compilation command lines for each source file")
+    parser.add_argument("args", nargs="+", help=argparse.SUPPRESS)
 
     a = parser.parse_args(argv[1:])
     a.etags = bool(a.e or re.search("etags", argv[0]))
     if not a.output:
         a.output = "TAGS" if a.etags else "tags"
+    if a.compile_commands:
+        a.source_files = a.args
+    else:
+        a.compiler_command_line = a.args
     return a
 
 
@@ -168,8 +187,7 @@ def debug(s):
 
 
 def error(s):
-    from os.path import basename
-    sys.stderr.write("%s: Error: %s\n" % (basename(sys.argv[0]), s))
+    sys.stderr.write("%s: Error: %s\n" % (os.path.basename(sys.argv[0]), s))
     sys.exit(1)
 
 
