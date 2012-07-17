@@ -1,0 +1,17 @@
+[
+{
+    "directory": "@TESTDIR@",
+    "command": "g++ -c -DMYMACRO=a subdir/a.cpp",
+    "file": "@TESTDIR@/subdir/a.cpp",
+},
+{
+    "directory": "@TESTDIR@",
+    "command": "g++ -c subdir/b.cpp",
+    "file": "@TESTDIR@/subdir/b.cpp",
+},
+{
+    "directory": "@TESTDIR@",
+    "command": "g++ -c subdir/c.cpp",
+    "file": "subdir/c.cpp",
+},
+]

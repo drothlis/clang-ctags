@@ -19,11 +19,12 @@ def main(argv):
         db = CompilationDatabase.fromDirectory(
             args.compile_commands if os.path.isdir(args.compile_commands)
             else os.path.dirname(args.compile_commands))
-        for f in args.source_files:
+        source_files = [os.path.abspath(x) for x in args.source_files]
+        for f in source_files:
             debug("Processing " + f)
             for c in db.getCompileCommands(f) or []:
                 debug("* Found compile command: " + " ".join(list(c.arguments)))
-                do_tags(list(c.arguments)[1:], formatter, args.source_files)
+                do_tags(list(c.arguments)[1:], formatter, source_files)
     else:
         do_tags(args.compiler_command_line, formatter)
 
@@ -50,7 +51,7 @@ def do_tags(compiler_command_line, formatter, source_files=[]):
               tu.spelling)
 
     if not source_files:
-        source_files = [tu.spelling]
+        source_files = [os.path.abspath(tu.spelling)]
 
     for c in tu.cursor.get_children():
         do_cursor(c, formatter, source_files)
@@ -58,7 +59,7 @@ def do_tags(compiler_command_line, formatter, source_files=[]):
 
 def do_cursor(cursor, formatter, source_files):
     if (not cursor.location.file or
-                cursor.location.file.name not in source_files):
+            os.path.abspath(cursor.location.file.name) not in source_files):
         return
 
     if is_definition(cursor):
@@ -123,8 +124,8 @@ class Etags:
 
     def tag(self, cursor, tagname):
         """The complete tags file entry for symbol 'tag'."""
-        if self.current_file_name != cursor.location.file.name:
-            self.current_file_name = cursor.location.file.name
+        if self.current_file_name != os.path.abspath(cursor.location.file.name):
+            self.current_file_name = os.path.abspath(cursor.location.file.name)
             with open(self.current_file_name) as f:
                 self.current_file_lines = f.readlines()
 

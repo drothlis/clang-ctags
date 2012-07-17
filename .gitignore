@@ -3,6 +3,7 @@
 clang-etags
 TAGS
 tags
+test/compile_commands.json
 test/logs
 test/tags.custom-name
 test/tmp.cpp
