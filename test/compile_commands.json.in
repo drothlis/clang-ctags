@@ -24,4 +24,9 @@
     "command": "g++ -c e.cpp",
     "file": "e.cpp",
 },
+{
+    "directory": "subdir",
+    "command": "g++ -c f.cpp",
+    "file": "@TESTDIR@/subdir/f.cpp",
+},
 ]

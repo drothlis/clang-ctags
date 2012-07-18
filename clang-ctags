@@ -16,15 +16,15 @@ def main(argv):
     formatter = Etags() if args.etags else Ctags()
 
     if args.compile_commands:
-        db = CompilationDatabase.fromDirectory(
-            args.compile_commands if os.path.isdir(args.compile_commands)
-            else os.path.dirname(args.compile_commands))
+        db_dir = (args.compile_commands if os.path.isdir(args.compile_commands)
+                  else os.path.dirname(args.compile_commands))
+        db = CompilationDatabase.fromDirectory(db_dir)
         source_files = [os.path.realpath(x) for x in args.source_files]
         for f in source_files:
             debug("Processing " + f)
             for c in db.getCompileCommands(f) or []:
                 debug("* Found compile command: " + " ".join(list(c.arguments)))
-                with cwd(c.directory):
+                with cwd(os.path.join(db_dir, c.directory)):
                     debug("  run from directory: " + os.getcwd())
                     do_tags(list(c.arguments)[1:], formatter, source_files)
     else:

@@ -50,3 +50,14 @@ test_db_compile_command_from_different_directory() {
     assert_tag d
     assert_emacs '(find-tag "d")' d.cpp:1
 }
+
+test_db_compile_command_directory_is_relative_to_database() {
+    clang-ctags -e --compile-commands=compile_commands.json subdir/f.cpp
+    assert_tag f
+    assert_emacs '(find-tag "f")' f.cpp:1
+
+    cd subdir
+    clang-ctags -e --compile-commands=../compile_commands.json f.cpp
+    assert_tag f
+    assert_emacs '(find-tag "f")' f.cpp:1
+}
