@@ -24,7 +24,9 @@ def main(argv):
             debug("Processing " + f)
             for c in db.getCompileCommands(f) or []:
                 debug("* Found compile command: " + " ".join(list(c.arguments)))
-                do_tags(list(c.arguments)[1:], formatter, source_files)
+                with cwd(c.directory):
+                    debug("  run from directory: " + os.getcwd())
+                    do_tags(list(c.arguments)[1:], formatter, source_files)
     else:
         do_tags(args.compiler_command_line, formatter)
 
@@ -157,6 +159,19 @@ class Ctags:
     def  __init__(self):
         error("Ctags (vi) format not implemented. "
               "Use '-e' for etags (Emacs) format.")
+
+
+class cwd:
+    """Run a block of code from a specified working directory"""
+    def __init__(self, dir):
+        self.dir = dir
+
+    def __enter__(self):
+        self.old_dir = os.getcwd()
+        os.chdir(self.dir)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir(self.old_dir)
 
 
 def parse_args(argv):

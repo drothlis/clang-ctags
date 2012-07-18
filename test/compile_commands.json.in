@@ -14,4 +14,14 @@
     "command": "g++ -c subdir/c.cpp",
     "file": "subdir/c.cpp",
 },
+{
+    "directory": "@TESTDIR@/subdir",
+    "command": "g++ -c d.cpp",
+    "file": "@TESTDIR@/subdir/d.cpp",
+},
+{
+    "directory": "@TESTDIR@/subdir",
+    "command": "g++ -c e.cpp",
+    "file": "e.cpp",
+},
 ]

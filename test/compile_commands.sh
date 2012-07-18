@@ -35,3 +35,18 @@ test_db_find_entry_with_canonical_path_given_uncanonical_path() {
     clang-ctags -e --compile-commands=compile_commands.json subdir2/a.cpp
     assert_tag a
 }
+
+test_db_find_entry_relative_to_directory_XFAIL() {
+    # According to http://clang.llvm.org/docs/JSONCompilationDatabase.html
+    # the entry in compile_commands.json should be:
+    #     { "directory": "subdir", "file": "e.cpp" }
+    # i.e. with `file` relative to `directory`.
+    clang-ctags -e --compile-commands=compile_commands.json subdir/e.cpp
+    ! ( assert_tag e )
+}
+
+test_db_compile_command_from_different_directory() {
+    clang-ctags -e --compile-commands=compile_commands.json subdir/d.cpp
+    assert_tag d
+    assert_emacs '(find-tag "d")' d.cpp:1
+}
