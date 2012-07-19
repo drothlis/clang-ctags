@@ -60,7 +60,8 @@ def do_tags(compiler_command_line, formatter, source_files=[]):
 
 
 def do_cursor(cursor, formatter, source_files):
-    if (not cursor.location.file or
+    if not cursor.location.file or (
+            not args.all_headers and
             os.path.realpath(cursor.location.file.name) not in source_files):
         return
 
@@ -198,6 +199,9 @@ def parse_args(argv):
                         version="clang-ctags 1.0rc")
     parser.add_argument("--compile-commands", metavar="COMPILE_COMMANDS.JSON",
         help="database of compilation command lines for each source file")
+    parser.add_argument("--all-headers", action="store_true",
+        help="write tags for all header files encountered "
+             "(not just those specified on the command line)")
     parser.add_argument("args", nargs="+", help=argparse.SUPPRESS)
 
     a = parser.parse_args(argv[1:])
@@ -207,7 +211,13 @@ def parse_args(argv):
     if a.compile_commands:
         a.source_files = a.args
     else:
+        a.source_files = []
         a.compiler_command_line = a.args
+
+    if a.all_headers and len(a.source_files) > 1:
+        warn("`--all-headers` is being used with more than one source file. "
+             "This can lead to an unusably large tag file.")
+
     return a
 
 
@@ -215,6 +225,8 @@ def debug(s):
     if args.verbose:
         sys.stderr.write(s + "\n")
 
+def warn(s):
+    sys.stderr.write("%s: Warning: %s\n" % (os.path.basename(sys.argv[0]), s))
 
 def error(s):
     sys.stderr.write("%s: Error: %s\n" % (os.path.basename(sys.argv[0]), s))

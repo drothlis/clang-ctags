@@ -74,6 +74,13 @@ clang-ctags needs the full compilation command line to pass on to clang.
     A "compilation database" containing the compilation command line for every
     source file in your project. See **Compilation database**, below.
 
+--all-headers
+    Write tags for all header files encountered while preprocessing the source
+    file(s), not just the headers specified on the command line. Note that if
+    you include any system headers (even indirectly) this will result in a very
+    large tag file; I recommend you only use this option when generating a tag
+    file for a single source file.
+
 
 COMPILATION COMMAND LINE
 ========================

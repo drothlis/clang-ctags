@@ -57,3 +57,10 @@ test_preprocessor_flags_passed_through() {
     clang-ctags -e -- g++ -DMYMACRO=i $(srcfile "int MYMACRO;")
     assert_tag i
 }
+
+test_all_headers() {
+    clang-ctags -e -- g++ include.cpp
+    assert_no_tag 'in_header()'
+    clang-ctags -e --all-headers -- g++ include.cpp
+    assert_tag 'in_header()'
+}
