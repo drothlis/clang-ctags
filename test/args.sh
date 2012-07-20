@@ -58,6 +58,15 @@ test_preprocessor_flags_passed_through() {
     assert_tag i
 }
 
+test_compiler_command_line_linking_multiple_source_files_XFAIL() {
+    # The command line accepted by clang-ctags seems to be the command line for
+    # the compiler, not the compiler driver (which invokes the compiler proper,
+    # assembler, and linker). It means we can't generate tags for several
+    # source files in a single clang-ctags invocation (except by using
+    # --compile-comands).
+    ! clang-ctags -e -- -shared class.cpp overload.cpp
+}
+
 test_all_headers() {
     clang-ctags -e -- g++ include.cpp
     assert_no_tag 'in_header()'
