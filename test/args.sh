@@ -63,4 +63,17 @@ test_all_headers() {
     assert_no_tag 'in_header()'
     clang-ctags -e --all-headers -- g++ include.cpp
     assert_tag 'in_header()'
+    assert_tag '::time_t'
+}
+
+test_non_system_headers() {
+    clang-ctags -v -e --non-system-headers -- g++ include.cpp
+    assert_tag 'in_header()'
+    assert_no_tag '::time_t'
+}
+
+test_non_system_headers_with_absolute_path_to_source_file() {
+    clang-ctags -e --non-system-headers -- g++ "$PWD/include.cpp"
+    assert_tag 'in_header()'
+    assert_no_tag '::time_t'
 }

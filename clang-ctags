@@ -10,8 +10,9 @@ from clang.cindex import CompilationDatabase, CursorKind, Diagnostic
 
 
 def main(argv):
-    global args
+    global args, invocation_dir
     args = parse_args(argv)
+    invocation_dir = os.getcwd()
 
     formatter = Etags() if args.etags else Ctags()
 
@@ -60,9 +61,7 @@ def do_tags(compiler_command_line, formatter, source_files=[]):
 
 
 def do_cursor(cursor, formatter, source_files):
-    if not cursor.location.file or (
-            not args.all_headers and
-            os.path.realpath(cursor.location.file.name) not in source_files):
+    if not should_tag_file(cursor.location.file, source_files):
         return
 
     if is_definition(cursor):
@@ -74,6 +73,17 @@ def do_cursor(cursor, formatter, source_files):
     if should_tag_children(cursor):
         for c in cursor.get_children():
             do_cursor(c, formatter, source_files)
+
+
+def should_tag_file(f, source_files):
+    def is_system_header():
+        return (os.path.isabs(f.name) and
+                os.path.relpath(f.name, invocation_dir).startswith(".."))
+
+    return (f and
+            (args.all_headers or
+             (args.non_system_headers and not is_system_header()) or
+             os.path.realpath(f.name) in source_files))
 
 
 def is_definition(cursor):
@@ -202,6 +212,8 @@ def parse_args(argv):
     parser.add_argument("--all-headers", action="store_true",
         help="write tags for all header files encountered "
              "(not just those specified on the command line)")
+    parser.add_argument("--non-system-headers", action="store_true",
+        help="write tags for all non-system header files encountered")
     parser.add_argument("args", nargs="+", help=argparse.SUPPRESS)
 
     a = parser.parse_args(argv[1:])

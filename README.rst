@@ -81,6 +81,19 @@ clang-ctags needs the full compilation command line to pass on to clang.
     large tag file; I recommend you only use this option when generating a tag
     file for a single source file.
 
+--non-system-headers
+    Write tags for all non-system header files encountered while preprocessing
+    the source file(s), not just the headers specified on the command line. (A
+    system header file is one found in certain system-dependent directories and
+    included with `<header.h>` instead of `"header.h"`.)
+    libclang doesn't currently expose the list of system directories, so
+    clang-ctags employs the following heuristic to decide that a file is *not*
+    a system header: (a) the file is found via a relative path (as specified to
+    the preprocessor with `-I`), or (b) the file is located under the directory
+    where clang-ctags is run from. Note that (b) is necessary because clang
+    converts all header search paths to absolute paths if the source filename
+    (as specified on the compiler command line) is an absolute path.
+
 
 COMPILATION COMMAND LINE
 ========================
