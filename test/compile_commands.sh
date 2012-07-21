@@ -29,3 +29,9 @@ test_db_find_entry_with_absolute_path_given_relative_path() {
     clang-ctags -e --compile-commands=compile_commands.json subdir/a.cpp
     assert_tag a
 }
+
+test_db_find_entry_with_canonical_path_given_uncanonical_path() {
+    ln -sf subdir subdir2
+    clang-ctags -e --compile-commands=compile_commands.json subdir2/a.cpp
+    assert_tag a
+}

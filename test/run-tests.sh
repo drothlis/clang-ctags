@@ -58,7 +58,10 @@ test_the_test_framework() {
 
 ##############################################################################
 
-cd "$(dirname "$0")"
+# portable 'readlink --canonicalize'
+realpath() { python -c "import os; print os.path.realpath('$1')"; }
+
+cd "$(realpath "$(dirname "$0")")"
 
 for f in $(ls *.sh | grep -v $(basename $0)); do
     source ./$f
