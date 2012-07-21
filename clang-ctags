@@ -161,9 +161,9 @@ class Etags:
                 self.current_file_lines = f.readlines()
 
         if self.current_file_name not in self.tags:
-            self.tags[self.current_file_name] = []
+            self.tags[self.current_file_name] = set()
 
-        self.tags[self.current_file_name].append((
+        self.tags[self.current_file_name].add((
             self.current_file_lines[cursor.location.line - 1].rstrip(),
             tagname,
             cursor.location.line,

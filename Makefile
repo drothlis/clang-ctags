@@ -30,6 +30,7 @@ TEST_SOURCES += test/nested.cpp
 TEST_SOURCES += test/overload.cpp
 TEST_SOURCES += test/struct.cpp
 TEST_SOURCES += $(wildcard test/subdir/[a-f].cpp)
+TEST_SOURCES += test/subdir/b2.cpp
 TEST_SOURCES += test/subdir/b.h
 TEST_SOURCES += test/template.cpp
 TEST_SOURCES += test/union.cpp

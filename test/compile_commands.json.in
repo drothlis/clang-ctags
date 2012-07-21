@@ -11,6 +11,11 @@
 },
 {
     "directory": "@TESTDIR@",
+    "command": "g++ -c subdir/b2.cpp",
+    "file": "@TESTDIR@/subdir/b2.cpp",
+},
+{
+    "directory": "@TESTDIR@",
     "command": "g++ -c subdir/c.cpp",
     "file": "subdir/c.cpp",
 },

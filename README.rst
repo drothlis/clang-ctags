@@ -217,7 +217,7 @@ Running clang-ctags over the `lib` directory of the `clang` source code (480
 files totalling 470k lines of code) took 37 minutes on a 1.8GHz Intel Core i7.
 98% of this time is the parsing done by libclang itself (the calls to
 clang_parseTranslationUnit, or clang.cindex.Index.parse in the python
-bindings). The result is a 10MB tag file with 80k tags.
+bindings). The result is a 3MB tag file with 23k tags.
 
 By comparison, GNU etags takes 0.5 **seconds** on the same input and produces
 a 1.4MB tag file with 25k tags.
