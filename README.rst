@@ -214,7 +214,7 @@ PERFORMANCE
 ===========
 
 Running clang-ctags over the `lib` directory of the `clang` source code (480
-files totalling 470k lines of code) took 96 minutes on a 1.8GHz Intel Core i7.
+files totalling 470k lines of code) took 37 minutes on a 1.8GHz Intel Core i7.
 98% of this time is the parsing done by libclang itself (the calls to
 clang_parseTranslationUnit, or clang.cindex.Index.parse in the python
 bindings). The result is a 10MB tag file with 80k tags.
@@ -241,10 +241,6 @@ time, as part of the build (see "Interposing the compiler to run clang-ctags
 during the build", above), using `--append` to update an existing tag file.
 This would require modifying clang-ctags so that, when appending, it reads
 in the tag file and removes existing tags for the same source file.
-
-Passing `TranslationUnit.PARSE_SKIP_FUNCTION_BODIES` to `Index.parse` has the
-potential to cut this time in half, but then you don't get tags for function
-definitions.
 
 
 SEE ALSO

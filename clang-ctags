@@ -7,7 +7,8 @@ import time
 import traceback
 
 import clang.cindex
-from clang.cindex import CompilationDatabase, CursorKind, Diagnostic
+from clang.cindex import CompilationDatabase, CursorKind, Diagnostic, \
+    TranslationUnit
 
 
 def main(argv):
@@ -43,7 +44,8 @@ def do_tags(compiler_command_line, formatter, source_files=[]):
     index = clang.cindex.Index.create()
     try:
         start = time.time()
-        tu = index.parse(None, compiler_command_line)  # a Translation Unit
+        tu = index.parse(None, compiler_command_line,
+                         options=TranslationUnit.PARSE_SKIP_FUNCTION_BODIES)
         debug("  clang parse took %.2fs" % (time.time() - start))
     except Exception as e:
         debug(traceback.format_exc())
@@ -94,11 +96,20 @@ def should_tag_file(f, source_files):
 
 
 def is_definition(cursor):
-    return cursor.is_definition() and not cursor.kind in [
-        CursorKind.CXX_ACCESS_SPEC_DECL,
-        CursorKind.TEMPLATE_TYPE_PARAMETER,
-        CursorKind.UNEXPOSED_DECL,
-        ]
+    return (
+        (cursor.is_definition() and not cursor.kind in [
+            CursorKind.CXX_ACCESS_SPEC_DECL,
+            CursorKind.TEMPLATE_TYPE_PARAMETER,
+            CursorKind.UNEXPOSED_DECL,
+            ]) or
+        # work around bug (?) whereby using PARSE_SKIP_FUNCTION_BODIES earlier
+        # causes libclang to report cursor.is_definition() as false for
+        # function definitions.
+        cursor.kind in [
+            CursorKind.FUNCTION_DECL,
+            CursorKind.CXX_METHOD,
+            CursorKind.FUNCTION_TEMPLATE,
+            ])
 
 
 def semantic_parents(cursor):
