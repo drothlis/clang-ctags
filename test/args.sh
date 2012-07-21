@@ -86,3 +86,14 @@ test_non_system_headers_with_absolute_path_to_source_file() {
     assert_tag 'in_header()'
     assert_no_tag '::time_t'
 }
+
+test_suppress_qualifier_tags() {
+    clang-ctags -e struct.cpp
+    assert_tag ::s::i
+    assert_tag s::i
+    assert_tag i
+    clang-ctags -e --suppress-qualifier-tags struct.cpp
+    assert_tag ::s::i
+    assert_no_tag s::i
+    assert_no_tag i
+}

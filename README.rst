@@ -94,6 +94,14 @@ clang-ctags needs the full compilation command line to pass on to clang.
     converts all header search paths to absolute paths if the source filename
     (as specified on the compiler command line) is an absolute path.
 
+--suppress-qualifier-tags
+    Write a single tag per C++ definition, instead of separate tags for each
+    level of namespace/class qualifiers. For example, given a source file
+    containing ``namespace ns { class cls { int member; }; }`` clang-ctags will
+    generate 4 separate tags: `::ns::cls::member`, `ns::cls::member`,
+    `cls::member`, and `member`. When this option is given, only the first of
+    those tags will be generated.
+
 
 COMPILATION COMMAND LINE
 ========================
@@ -209,7 +217,7 @@ Running clang-ctags over the `lib` directory of the `clang` source code (480
 files totalling 470k lines of code) took 96 minutes on a 1.8GHz Intel Core i7.
 98% of this time is the parsing done by libclang itself (the calls to
 clang_parseTranslationUnit, or clang.cindex.Index.parse in the python
-bindings). The result is a 26MB tag file with 250k tags.
+bindings). The result is a 10MB tag file with 80k tags.
 
 By comparison, GNU etags takes 0.5 **seconds** on the same input and produces
 a 1.4MB tag file with 25k tags.
@@ -217,7 +225,8 @@ a 1.4MB tag file with 25k tags.
 (The command line used was::
 
     time find llvm/tools/clang/lib -name '*.[ch]' -o -name '*.[ch]pp' |
-    xargs clang-ctags -v -e --compile-commands=build/compile_commands.json
+    xargs clang-ctags -v -e --suppress-qualifier-tags \
+          --compile-commands=build/compile_commands.json
 
 clang-ctags didn't generate tags for any of the header files in `lib/Headers`,
 because no source files included them. GNU etags generated about 4k tags from
