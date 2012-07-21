@@ -202,8 +202,45 @@ and its python bindings in the official clang package for your system (Debian,
 Ubuntu, FreeBSD, MacPorts, etc).
 
 
+PERFORMANCE
+===========
+
+Running clang-ctags over the `lib` directory of the `clang` source code (480
+files totalling 470k lines of code) took 96 minutes on a 1.8GHz Intel Core i7.
+98% of this time is the parsing done by libclang itself (the calls to
+clang_parseTranslationUnit, or clang.cindex.Index.parse in the python
+bindings). The result is a 26MB tag file with 250k tags.
+
+By comparison, GNU etags takes 0.5 **seconds** on the same input and produces
+a 1.4MB tag file with 25k tags.
+
+(The command line used was::
+
+    time find llvm/tools/clang/lib -name '*.[ch]' -o -name '*.[ch]pp' |
+    xargs clang-ctags -v -e --compile-commands=build/compile_commands.json
+
+clang-ctags didn't generate tags for any of the header files in `lib/Headers`,
+because no source files included them. GNU etags generated about 4k tags from
+these header files.)
+
+Running clang-ctags over a much larger input, such as the entire llvm C/C++
+sources (7k files, 1.8 million lines of code) is unfeasible: After running
+all night it still hadn't finished, and was using 3GB of memory.
+
+A better solution would be to run clang-ctags over a single source file at a
+time, as part of the build (see "Interposing the compiler to run clang-ctags
+during the build", above), using `--append` to update an existing tag file.
+This would require modifying clang-ctags so that, when appending, it reads
+in the tag file and removes existing tags for the same source file.
+
+Passing `TranslationUnit.PARSE_SKIP_FUNCTION_BODIES` to `Index.parse` has the
+potential to cut this time in half, but then you don't get tags for function
+definitions.
+
+
 SEE ALSO
 ========
 
 * http://david.rothlis.net/clang-ctags
 * http://github.com/drothlis/clang-ctags
+* http://clang.llvm.org/
