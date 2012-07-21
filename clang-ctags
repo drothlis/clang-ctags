@@ -3,6 +3,7 @@
 import os.path
 import StringIO
 import sys
+import time
 import traceback
 
 import clang.cindex
@@ -21,8 +22,8 @@ def main(argv):
                   else os.path.dirname(args.compile_commands))
         db = CompilationDatabase.fromDirectory(db_dir)
         source_files = [os.path.realpath(x) for x in args.source_files]
-        for f in source_files:
-            debug("Processing " + f)
+        for i, f in enumerate(source_files):
+            debug("Processing file %d of %d: %s" % (i+1, len(source_files), f))
             for c in db.getCompileCommands(f) or []:
                 debug("* Found compile command: " + " ".join(list(c.arguments)))
                 with cwd(os.path.join(db_dir, c.directory)):
@@ -41,7 +42,9 @@ def main(argv):
 def do_tags(compiler_command_line, formatter, source_files=[]):
     index = clang.cindex.Index.create()
     try:
+        start = time.time()
         tu = index.parse(None, compiler_command_line)  # a Translation Unit
+        debug("  clang parse took %.2fs" % (time.time() - start))
     except Exception as e:
         debug(traceback.format_exc())
         error("Clang failed to parse '%s'" % " ".join(compiler_command_line))
@@ -56,8 +59,10 @@ def do_tags(compiler_command_line, formatter, source_files=[]):
     if not source_files:
         source_files = [os.path.realpath(tu.spelling)]
 
+    start = time.time()
     for c in tu.cursor.get_children():
         do_cursor(c, formatter, source_files)
+    debug("  tag generation took %.2fs" % (time.time() - start))
 
 
 def do_cursor(cursor, formatter, source_files):
