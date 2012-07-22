@@ -243,9 +243,18 @@ This would require modifying clang-ctags so that, when appending, it reads
 in the tag file and removes existing tags for the same source file.
 
 
+HACKING
+=======
+
+The `clang-ctags` source file is light on comments but there is a lot of
+information in the commit messages, which I have tried to structure in a
+tutorial-like fashion. Start by browsing the oldest commits at
+https://github.com/drothlis/clang-ctags/commits/master/clang-ctags
+and make good use of `git annotate`.
+
+
 SEE ALSO
 ========
 
-* http://david.rothlis.net/clang-ctags
 * http://github.com/drothlis/clang-ctags
 * http://clang.llvm.org/
