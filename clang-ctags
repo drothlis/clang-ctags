@@ -224,7 +224,7 @@ def parse_args(argv):
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="enable debugging output")
     parser.add_argument("--version", action="version",
-                        version="clang-ctags 1.0rc")
+                        version="clang-ctags 0.1")
     parser.add_argument("--compile-commands", metavar="COMPILE_COMMANDS.JSON",
         help="database of compilation command lines for each source file")
     parser.add_argument("--all-headers", action="store_true",
