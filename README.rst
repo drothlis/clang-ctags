@@ -77,15 +77,16 @@ clang-ctags needs the full compilation command line to pass on to clang.
 --all-headers
     Write tags for all header files encountered while preprocessing the source
     file(s), not just the headers specified on the command line. Note that if
-    you include any system headers (even indirectly) this will result in a very
-    large tag file; I recommend you only use this option when generating a tag
-    file for a single source file.
+    you include any system headers (even indirectly) this will result in
+    increased processing time and a very large tag file; I recommend you only
+    use this option when generating a tag file for a single source file.
 
 --non-system-headers
     Write tags for all non-system header files encountered while preprocessing
     the source file(s), not just the headers specified on the command line. (A
     system header file is one found in certain system-dependent directories and
-    included with `<header.h>` instead of `"header.h"`.)
+    included with `<header.h>` instead of `"header.h"`.)  This increases
+    processing time and tag file size.
     libclang doesn't currently expose the list of system directories, so
     clang-ctags employs the following heuristic to decide that a file is *not*
     a system header: (a) the file is found via a relative path (as specified to
@@ -236,11 +237,17 @@ Running clang-ctags over a much larger input, such as the entire llvm C/C++
 sources (7k files, 1.8 million lines of code) took 98 minutes and a peak memory
 usage of 140MB.
 
-A better solution would be to run clang-ctags over a single source file at a
+A better solution might be to run clang-ctags over a single source file at a
 time, as part of the build (see "Interposing the compiler to run clang-ctags
 during the build", above), using `--append` to update an existing tag file.
 This would require modifying clang-ctags so that, when appending, it reads
 in the tag file and removes existing tags for the same source file.
+
+Another possible way to speed up clang-ctags is parallelization: If clang-ctags
+supported multiple processes writing to the same file, one could use GNU
+parallel instead of xargs::
+
+    find . -name '*.[ch]*' | parallel clang-ctags --append ...
 
 
 HACKING
