@@ -1,7 +1,6 @@
 test_basic_tags() {
     clang-ctags -e macros.cpp
     assert_tag n1 6,120
-    assert_tag s 7,139
 }
 
 test_implicit_declarations_arent_tagged() {
@@ -52,28 +51,10 @@ test_parameter_qualifiers() {
 
 test_nested_scopes() {
     clang-ctags -e nested.cpp
-
-    assert_tag ::n1 1,10
     assert_tag n1 1,10
-
-    assert_tag ::n1::n2 2,27
     assert_tag n1::n2 2,27
-    assert_tag n2 2,27
-    assert_no_tag ::n2 2,
-
-    assert_tag ::n1::n2::s 3,43
     assert_tag n1::n2::s 3,43
-    assert_tag n2::s 3,43
-    assert_tag s 3,43
-    assert_no_tag ::n2::s 3,
-    assert_no_tag ::s 3,
-
-    assert_tag ::n2::s 7,80
     assert_tag n2::s 7,80
-    assert_tag s 7,80
-    assert_no_tag ::s 7,
-
-    assert_tag ::s 9,96
     assert_tag s 9,96
 }
 

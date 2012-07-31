@@ -72,7 +72,7 @@ test_all_headers() {
     assert_no_tag 'in_header()'
     clang-ctags -e --all-headers -- g++ include.cpp
     assert_tag 'in_header()'
-    assert_tag '::time_t'
+    assert_tag 'time_t'
 }
 
 test_non_system_headers() {
@@ -87,13 +87,29 @@ test_non_system_headers_with_absolute_path_to_source_file() {
     assert_no_tag '::time_t'
 }
 
-test_suppress_qualifier_tags() {
-    clang-ctags -e struct.cpp
-    assert_tag ::s::i
-    assert_tag s::i
-    assert_tag i
-    clang-ctags -e --suppress-qualifier-tags struct.cpp
-    assert_tag ::s::i
-    assert_no_tag s::i
-    assert_no_tag i
+test_extra_qualifier_tags() {
+    clang-ctags -e --extra-qualifier-tags nested.cpp
+
+    assert_tag ::n1 1,10
+    assert_tag n1 1,10
+
+    assert_tag ::n1::n2 2,27
+    assert_tag n1::n2 2,27
+    assert_tag n2 2,27
+    assert_no_tag ::n2 2,
+
+    assert_tag ::n1::n2::s 3,43
+    assert_tag n1::n2::s 3,43
+    assert_tag n2::s 3,43
+    assert_tag s 3,43
+    assert_no_tag ::n2::s 3,
+    assert_no_tag ::s 3,
+
+    assert_tag ::n2::s 7,80
+    assert_tag n2::s 7,80
+    assert_tag s 7,80
+    assert_no_tag ::s 7,
+
+    assert_tag ::s 9,96
+    assert_tag s 9,96
 }

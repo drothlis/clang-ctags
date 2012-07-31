@@ -65,7 +65,7 @@ test_db_compile_command_directory_is_relative_to_database() {
 test_no_duplicate_tags() {
     clang-ctags -e --compile-commands=compile_commands.json \
         --suppress-qualifier-tags subdir/b.cpp subdir/b2.cpp subdir/b.h
-    assert_tag ::b
-    count=$(grep "${DEL}::b$SOH" TAGS | wc -l)
+    assert_tag b
+    count=$(grep "${DEL}b$SOH" TAGS | wc -l)
     [ "$count" -eq 1 ] || fail "Too many ($count) tags for 'b'"
 }

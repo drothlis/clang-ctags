@@ -73,11 +73,14 @@ def do_cursor(cursor, formatter, source_files):
 
     if is_definition(cursor):
         parents = semantic_parents(cursor)
-        formatter.tag(cursor, "::" + "::".join(parents + [cursor.displayname]))
-        if not args.suppress_qualifier_tags:
+        if args.extra_qualifier_tags:
+            formatter.tag(
+                cursor, "::" + "::".join(parents + [cursor.displayname]))
             for i in range(len(parents) + 1):
                 formatter.tag(
                     cursor, "::".join(parents[i:] + [cursor.displayname]))
+        else:
+            formatter.tag(cursor, "::".join(parents + [cursor.displayname]))
 
     if should_tag_children(cursor):
         for c in cursor.get_children():
@@ -232,9 +235,10 @@ def parse_args(argv):
              "(not just those specified on the command line)")
     parser.add_argument("--non-system-headers", action="store_true",
         help="write tags for all non-system header files encountered")
-    parser.add_argument("--suppress-qualifier-tags", action="store_true",
-        help="write a single tag per definition, instead of separate tags "
-             "for each level of namespace/class qualifiers")
+    parser.add_argument("--extra-qualifier-tags", action="store_true",
+        help="write separate tags for each level of namespace/class qualifier")
+    parser.add_argument("--suppress-qualifier-tags", action="store_false",
+        dest="extra_qualifier_tags", help=argparse.SUPPRESS)
     parser.add_argument("args", nargs="+", help=argparse.SUPPRESS)
 
     a = parser.parse_args(argv[1:])

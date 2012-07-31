@@ -87,6 +87,7 @@ clang-ctags needs the full compilation command line to pass on to clang.
     system header file is one found in certain system-dependent directories and
     included with `<header.h>` instead of `"header.h"`.)  This increases
     processing time and tag file size.
+
     libclang doesn't currently expose the list of system directories, so
     clang-ctags employs the following heuristic to decide that a file is *not*
     a system header: (a) the file is found via a relative path (as specified to
@@ -95,13 +96,20 @@ clang-ctags needs the full compilation command line to pass on to clang.
     converts all header search paths to absolute paths if the source filename
     (as specified on the compiler command line) is an absolute path.
 
---suppress-qualifier-tags
-    Write a single tag per C++ definition, instead of separate tags for each
-    level of namespace/class qualifiers. For example, given a source file
-    containing ``namespace ns { class cls { int member; }; }`` clang-ctags will
-    generate 4 separate tags: `::ns::cls::member`, `ns::cls::member`,
-    `cls::member`, and `member`. When this option is given, only the first of
-    those tags will be generated.
+--extra-qualifier-tags
+    Write a separate tag for each namespace/class qualifier. For example, given
+    a source file containing ``namespace ns { class cls { int member; }; }``
+    clang-ctags will generate 4 separate tags: `::ns::cls::member`,
+    `ns::cls::member`, `cls::member`, and `member`.
+
+    This greatly inflates the size of the generated tag file. This is only
+    necessary when your editor doesn't perform sub-string matches on the tag
+    name; with Emacs I don't need this option because I use
+    "ido-ubiquitous"[1], a package that provides the "ido"[2] fuzzy matching
+    everywhere in Emacs, including at the "find-tag" prompt.
+
+    | [1] https://github.com/technomancy/ido-ubiquitous
+    | [2] http://emacswiki.org/emacs/InteractivelyDoThings
 
 
 COMPILATION COMMAND LINE
