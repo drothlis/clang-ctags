@@ -214,8 +214,8 @@ PERFORMANCE
 ===========
 
 Running clang-ctags over the `lib` directory of the `clang` source code (480
-files totalling 470k lines of code) took 37 minutes on a 1.8GHz Intel Core i7.
-98% of this time is the parsing done by libclang itself (the calls to
+files totalling 470k lines of code) took 4.3 minutes on a 1.8GHz Intel Core i7.
+72% of this time is the parsing done by libclang itself (the calls to
 clang_parseTranslationUnit, or clang.cindex.Index.parse in the python
 bindings). The result is a 3MB tag file with 23k tags.
 
@@ -233,8 +233,8 @@ because no source files included them. GNU etags generated about 4k tags from
 these header files.)
 
 Running clang-ctags over a much larger input, such as the entire llvm C/C++
-sources (7k files, 1.8 million lines of code) is unfeasible: After running
-all night it still hadn't finished, and was using 3GB of memory.
+sources (7k files, 1.8 million lines of code) took 98 minutes and a peak memory
+usage of 140MB.
 
 A better solution would be to run clang-ctags over a single source file at a
 time, as part of the build (see "Interposing the compiler to run clang-ctags
