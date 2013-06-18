@@ -191,9 +191,10 @@ http://clang.llvm.org/docs/JSONCompilationDatabase.html.
 clang-ctags understands the format of this database (and so do some other
 clang-based tools).
 
-If you don't use cmake, and you're feeling energetic, you could even write a
-script that uses the technique from the previous section, to generate a
-compilation database in this format. (If you do, let me know!)
+If you don't use cmake, **Build EAR** (https://github.com/rizsotto/Bear) is a
+tool that generates a compilation database. It figures out the compilation
+commands by intercepting your build system's `exec` calls, so it works with
+any build system.
 
 
 INSTALLING
