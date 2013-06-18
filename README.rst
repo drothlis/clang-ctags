@@ -139,7 +139,7 @@ the CC and CXX `make` variables. You can point these variables to a script that
 invokes clang-ctags, and then invokes the real compiler::
 
     #!/bin/sh
-    clang-ctags -f tagfile --append -- "$@"
+    clang-ctags -e -f tagfile --append -- "$@"
     g++ "$@"
 
 Note that this is only useful when starting from a clean build and an empty tag
