@@ -71,7 +71,7 @@ $(filter %.o,$(TEST_SOURCES:%.cpp=%.o)): %.o: %.cpp
 test/overload.o: TEST_CXXFLAGS = -Wno-return-type
 
 test/compile_commands.json: test/compile_commands.json.in
-	realpath=$$(python -c "import os; print os.path.realpath('$$PWD')"); \
+	realpath=$$(python2 -c "import os; print os.path.realpath('$$PWD')"); \
 	sed -e "s,@TESTDIR@,$$realpath/test," $< > $@
 
 

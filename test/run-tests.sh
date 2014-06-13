@@ -60,7 +60,7 @@ test_the_test_framework() {
 ##############################################################################
 
 # portable 'readlink --canonicalize'
-realpath() { python -c "import os; print os.path.realpath('$1')"; }
+realpath() { python2 -c "import os; print os.path.realpath('$1')"; }
 
 cd "$(realpath "$(dirname "$0")")"
 testdir=$(pwd)
