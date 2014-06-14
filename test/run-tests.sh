@@ -72,8 +72,10 @@ done
 testcases="$*"
 failures=0
 for t in ${testcases:-$(declare -F | awk '/ test_/ { print $3 }')}; do
-    ( # Run each test in a sub-shell to minimise side-effects.
-        set +e  # So that a failing test doesn't terminate this sub-shell.
+    # Run each test in a sub-shell to minimise side-effects.
+    #set +e so that a failing test doesn't terminate this sub-shell.
+    (
+        set +e
         printf "$t ... "
         logfile=logs/$t.log
         mkdir -p "$(dirname $logfile)"
