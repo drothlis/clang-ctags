@@ -11,4 +11,6 @@ test/tags.custom-name
 test/tmp.cpp
 test/*.o
 test/subdir/*.o
+test/subdir/subdir
+test/subdir2
 VERSION
