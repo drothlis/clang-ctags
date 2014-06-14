@@ -28,6 +28,25 @@ assert_emacs() {
         fail "$forms: Expected '$expected', got '$output'"
 }
 
+assert_vim() {
+    local tagnum tag expected
+    tagnum="$1"
+    tag="$2"
+    expected="$3"
+
+    local output=$(
+            vim -u NONE --noplugin -Es \
+                -c "set tags=TAGS" \
+                -c "${tagnum}tag $tag" \
+                -c 'execute "!echo %:t:" . line(".")' \
+                -c 'q'
+        )
+
+    debug $tagnum : $tag : $output
+    [ "$output" == "$expected" ] ||
+        fail "$tag,$tagnum: Expected '$expected', got '$output'"
+}
+
 assert_tag() {
     local tagname="$1" position="$2"
     local search="$DEL$tagname$SOH"
