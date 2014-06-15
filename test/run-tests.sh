@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e  # Exit immediately if any unexpected error occurs
+unset GREP_OPTIONS
 
 fail() { echo FAIL: $*; exit 1; }
 debug() { echo $* >&2; }
