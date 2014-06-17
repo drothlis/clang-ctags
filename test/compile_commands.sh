@@ -13,6 +13,7 @@ test_db_with_multiple_source_files() {
 
     clang-ctags --compile-commands=compile_commands.json \
         "$PWD/subdir/a.cpp" "$PWD/subdir/b.cpp" "$PWD/subdir/b.h"
+    assert_vim 0 'a' a.cpp:1
     assert_vim 0 'b' b.h:1
 }
 
