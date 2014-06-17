@@ -28,6 +28,25 @@ assert_emacs() {
         fail "$forms: Expected '$expected', got '$output'"
 }
 
+assert_vim() {
+    local tagnum tag expected
+    tagnum="$1"
+    tag="$2"
+    expected="$3"
+
+    local output=$(
+            vim -u NONE --noplugin -Es \
+                -c "set tags=TAGS" \
+                -c "${tagnum}tag $tag" \
+                -c 'execute "!echo %:t:" . line(".")' \
+                -c 'q'
+        )
+
+    debug $tagnum : $tag : $output
+    [ "$output" == "$expected" ] ||
+        fail "$tag,$tagnum: Expected '$expected', got '$output'"
+}
+
 assert_tag() {
     local tagname="$1" position="$2"
     local search="$DEL$tagname$SOH"
@@ -60,7 +79,7 @@ test_the_test_framework() {
 ##############################################################################
 
 # portable 'readlink --canonicalize'
-realpath() { python -c "import os; print os.path.realpath('$1')"; }
+realpath() { python2 -c "import os; print os.path.realpath('$1')"; }
 
 cd "$(realpath "$(dirname "$0")")"
 testdir=$(pwd)
@@ -72,8 +91,10 @@ done
 testcases="$*"
 failures=0
 for t in ${testcases:-$(declare -F | awk '/ test_/ { print $3 }')}; do
-    ( # Run each test in a sub-shell to minimise side-effects.
-        set +e  # So that a failing test doesn't terminate this sub-shell.
+    # Run each test in a sub-shell to minimise side-effects.
+    #set +e so that a failing test doesn't terminate this sub-shell.
+    (
+        set +e
         printf "$t ... "
         logfile=logs/$t.log
         mkdir -p "$(dirname $logfile)"
