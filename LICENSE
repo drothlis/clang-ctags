@@ -1,12 +1,12 @@
 University of Illinois/NCSA Open Source License
 
-Copyright (c) 2012 David Röthlisberger.
+Copyright (c) 2012-2014 David Röthlisberger and contributors.
 All rights reserved.
 
 Developed by:
 
     David Röthlisberger <david@rothlis.net>
-    http://david.rothlis.net/clang-ctags
+    https://github.com/drothlis/clang-ctags
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal with

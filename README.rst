@@ -6,8 +6,8 @@
 Generate tag file for C++ source code
 -------------------------------------
 
-:Copyright: Copyright (c) 2012 David Rothlisberger.
-:Author: David Rothlisberger <david@rothlis.net>
+:Copyright: Copyright (c) 2012-2014 David Röthlisberger and contributors.
+:Author: David Röthlisberger <david@rothlis.net>
 :License: UIUC license (a BSD-like license; the same license as Clang).
           See LICENSE file in source distribution for details.
 :Version: @VERSION@
