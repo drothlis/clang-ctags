@@ -6,6 +6,9 @@ import sys
 import time
 import traceback
 
+import subprocess
+import re
+
 import clang.cindex
 from clang.cindex import CompilationDatabase, CursorKind, Diagnostic, \
     TranslationUnit
@@ -40,8 +43,21 @@ def main(argv):
     out.write(formatter.getvalue())
 
 
+
+def clang_default_include():
+    sub = subprocess.Popen( ['clang', '-v', '-x', 'c++', '-'], stdin = subprocess.PIPE, stderr = subprocess.PIPE)    
+    _, out = sub.communicate('')
+
+    reg = re.compile('lib/clang.*/include$')
+
+    return next( line.strip() for line in out.split('\n') if reg.search(line) )
+
+    
 def do_tags(compiler_command_line, formatter, source_files=[]):
     index = clang.cindex.Index.create()
+
+    compiler_command_line = ['-I', clang_default_include()] + compiler_command_line
+    
     try:
         start = time.time()
         tu = index.parse(None, compiler_command_line,
