@@ -36,7 +36,7 @@ assert_vim() {
 
     local output=$(
             vim -u NONE --noplugin -Es \
-                -c "set tags=TAGS" \
+                -c "set tags=tags" \
                 -c "${tagnum}tag $tag" \
                 -c 'execute "!echo %:t:" . line(".")' \
                 -c 'q'
