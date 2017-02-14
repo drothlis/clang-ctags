@@ -6,6 +6,9 @@
 Generate tag file for C++ source code
 -------------------------------------
 
+.. image:: https://travis-ci.org/drothlis/clang-ctags.svg?branch=master
+   :target: https://travis-ci.org/drothlis/clang-ctags
+
 :Copyright: Copyright (c) 2012-2014 David Röthlisberger and contributors.
 :Author: David Röthlisberger <david@rothlis.net>
 :License: UIUC license (a BSD-like license; the same license as Clang).
