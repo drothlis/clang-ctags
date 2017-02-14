@@ -1,0 +1,10 @@
+language: c
+dist: trusty
+sudo: required
+install:
+  - sudo apt-get update
+  - sudo apt-get -y install
+        libclang-3.8-dev
+        python-clang-3.8
+script:
+  - PATH=/usr/bin:$PATH make check

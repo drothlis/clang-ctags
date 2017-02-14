@@ -56,6 +56,7 @@ dist: clang-ctags-$(VERSION).tar.gz
 # Requires python-docutils.
 clang-ctags.1: README.rst
 	sed -e 's/@VERSION@/$(VERSION)/g' $< |\
+	sed -e '/\.\. image::/,/^$$/ d' |\
 	$(RST2MAN) > $@
 
 clang-etags:
