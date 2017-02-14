@@ -101,8 +101,12 @@ for t in ${testcases:-$(declare -F | awk '/ test_/ { print $3 }')}; do
         rm -f TAGS tags
         ( set -e; PATH="$testdir/..:$PATH" $t; ) &> $logfile
         status=$?
-        [ $status -eq 0 ] && echo "OK" || { echo "FAIL"; cat $logfile; echo; }
-        exit $status
+        case $status,$t in
+            0,*XFAIL) echo "Unexpected PASS"; cat $logfile; echo; exit 1;;
+            0,*) echo "PASS"; exit 0;;
+            *,*XFAIL) echo "XFAIL"; exit 0;;
+            *,*) echo "FAIL"; cat $logfile; echo; exit 1;;
+        esac
     ) \
     || failures=$((failures+1))
 done
