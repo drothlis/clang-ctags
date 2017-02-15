@@ -64,7 +64,7 @@ test_compiler_command_line_linking_multiple_source_files_XFAIL() {
     # assembler, and linker). It means we can't generate tags for several
     # source files in a single clang-ctags invocation (except by using
     # --compile-comands).
-    ! clang-ctags -e -- -shared class.cpp overload.cpp
+    clang-ctags -e -- -shared class.cpp overload.cpp
 }
 
 test_all_headers() {

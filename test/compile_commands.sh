@@ -17,17 +17,14 @@ test_db_with_multiple_source_files() {
     assert_vim 0 'b' b.h:1
 }
 
-test_db_find_entry_with_relative_path_XFAIL() {
-    # The lookup done by clang's CompilationDatabase.getCompileCommands (C
-    # function clang_CompilationDatabase_getCompileCommands) doesn't seem to do
-    # anything smart with the filenames, just plain string matches.
+test_db_find_entry_with_relative_path() {
     clang-ctags -e --compile-commands=compile_commands.json subdir/c.cpp
-    ! ( assert_tag c )
+    assert_tag c
 }
 
-test_db_find_entry_with_relative_path_given_absolute_path_XFAIL() {
+test_db_find_entry_with_relative_path_given_absolute_path() {
     clang-ctags -e --compile-commands=compile_commands.json "$PWD/subdir/c.cpp"
-    ! ( assert_tag c )
+    assert_tag c
 }
 
 test_db_find_entry_with_absolute_path_given_relative_path() {
@@ -41,13 +38,9 @@ test_db_find_entry_with_canonical_path_given_uncanonical_path() {
     assert_tag a
 }
 
-test_db_find_entry_relative_to_directory_XFAIL() {
-    # According to http://clang.llvm.org/docs/JSONCompilationDatabase.html
-    # the entry in compile_commands.json should be:
-    #     { "directory": "subdir", "file": "e.cpp" }
-    # i.e. with `file` relative to `directory`.
+test_db_find_entry_relative_to_directory() {
     clang-ctags -e --compile-commands=compile_commands.json subdir/e.cpp
-    ! ( assert_tag e )
+    assert_tag e
 }
 
 test_db_compile_command_from_different_directory() {
