@@ -1,0 +1,24 @@
+[MASTER]
+persistent=no
+
+[REPORTS]
+output-format=colorized
+msg-template={path}:{line}:{column}: [{msg_id}({symbol}), {obj}] {msg}
+reports=no
+
+[MESSAGES CONTROL]
+disable=
+  bad-continuation,
+  broad-except,
+  invalid-name,
+  locally-disabled,
+  missing-docstring,
+
+[FORMAT]
+max-line-length=80
+
+[TYPECHECK]
+ignored-classes=
+
+[VARIABLES]
+dummy-variables-rgx=_

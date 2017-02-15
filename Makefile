@@ -45,8 +45,11 @@ install: clang-etags clang-ctags.1 clang-etags.1
 	$(INSTALL) -m 0755 clang-{c,e}tags $(DESTDIR)$(prefix)/bin
 	$(INSTALL) -m 0644 clang-{c,e}tags.1 $(DESTDIR)$(prefix)/share/man/man1
 
-check: $(TEST_SOURCES:%.cpp=%.o) test/compile_commands.json clang-etags
+check: $(TEST_SOURCES:%.cpp=%.o) test/compile_commands.json clang-etags lint
 	test/run-tests.sh
+
+lint:
+	pylint clang-ctags
 
 # Can only be run from within a git repository of clang-ctags or VERSION won't
 # be set correctly.

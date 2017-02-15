@@ -1,10 +1,14 @@
 #!/usr/bin/env python2
 
-import os.path
+import argparse
+import os
 import StringIO
 import sys
 import time
 import traceback
+from contextlib import contextmanager
+from os.path import basename, dirname, isabs, isdir, join, realpath, relpath
+from textwrap import dedent
 
 import subprocess
 import re
@@ -15,22 +19,22 @@ from clang.cindex import CompilationDatabase, CursorKind, Diagnostic, \
 
 
 def main(argv):
-    global args, invocation_dir
+    global args, invocation_dir  # pylint:disable=global-variable-undefined
     args = parse_args(argv)
     invocation_dir = os.getcwd()
 
     formatter = Etags() if args.etags else Ctags()
 
     if args.compile_commands:
-        db_dir = (args.compile_commands if os.path.isdir(args.compile_commands)
-                  else os.path.dirname(args.compile_commands))
+        db_dir = (args.compile_commands if isdir(args.compile_commands)
+                  else dirname(args.compile_commands))
         db = CompilationDatabase.fromDirectory(db_dir)
-        source_files = [os.path.realpath(x) for x in args.source_files]
+        source_files = [realpath(x) for x in args.source_files]
         for i, f in enumerate(source_files):
             debug("Processing file %d of %d: %s" % (i+1, len(source_files), f))
             for c in db.getCompileCommands(f) or []:
                 debug("* Found compile command: " + " ".join(list(c.arguments)))
-                with cwd(os.path.join(db_dir, c.directory)):
+                with cwd(join(db_dir, c.directory)):
                     debug("  run from directory: " + os.getcwd())
                     do_tags(list(c.arguments)[1:], formatter, source_files)
     else:
@@ -43,27 +47,25 @@ def main(argv):
     out.write(formatter.getvalue())
 
 
-
 def clang_default_include():
-    sub = subprocess.Popen( ['clang', '-v', '-x', 'c++', '-'], stdin = subprocess.PIPE, stderr = subprocess.PIPE)    
+    sub = subprocess.Popen(['clang', '-v', '-x', 'c++', '-'],
+                           stdin=subprocess.PIPE, stderr=subprocess.PIPE)
     _, out = sub.communicate('')
-
     reg = re.compile('lib/clang.*/include$')
+    return next(line.strip() for line in out.split('\n') if reg.search(line))
 
-    return next( line.strip() for line in out.split('\n') if reg.search(line) )
 
-    
-def do_tags(compiler_command_line, formatter, source_files=[]):
+def do_tags(compiler_command_line, formatter, source_files=None):
     index = clang.cindex.Index.create()
 
-    compiler_command_line = ['-I', clang_default_include()] + compiler_command_line
-    
+    compiler_command_line = ['-I', clang_default_include()] + \
+                            compiler_command_line
     try:
         start = time.time()
         tu = index.parse(None, compiler_command_line,
                          options=TranslationUnit.PARSE_SKIP_FUNCTION_BODIES)
         debug("  clang parse took %.2fs" % (time.time() - start))
-    except Exception as e:
+    except Exception:
         debug(traceback.format_exc())
         error("Clang failed to parse '%s'" % " ".join(compiler_command_line))
 
@@ -75,7 +77,7 @@ def do_tags(compiler_command_line, formatter, source_files=[]):
               tu.spelling)
 
     if not source_files:
-        source_files = [os.path.realpath(tu.spelling)]
+        source_files = [realpath(tu.spelling)]
 
     start = time.time()
     for c in tu.cursor.get_children():
@@ -105,13 +107,13 @@ def do_cursor(cursor, formatter, source_files):
 
 def should_tag_file(f, source_files):
     def is_system_header():
-        return (os.path.isabs(f.name) and
-                os.path.relpath(f.name, invocation_dir).startswith(".."))
+        return (isabs(f.name) and
+                relpath(f.name, invocation_dir).startswith(".."))
 
     return (f and
             (args.all_headers or
              (args.non_system_headers and not is_system_header()) or
-             os.path.realpath(f.name) in source_files))
+             realpath(f.name) in source_files))
 
 
 def is_definition(cursor):
@@ -161,7 +163,7 @@ def is_named_scope(cursor):
         ]
 
 
-class Etags:
+class Etags(object):
     """Write tags in the format understood by Emacs.
 
     See http://bzr.savannah.gnu.org/lh/emacs/trunk/annotate/head:/etc/ETAGS.EBNF
@@ -174,8 +176,8 @@ class Etags:
 
     def tag(self, cursor, tagname):
         """The complete tags file entry for symbol 'tag'."""
-        if self.current_file_name != os.path.realpath(cursor.location.file.name):
-            self.current_file_name = os.path.realpath(cursor.location.file.name)
+        if self.current_file_name != realpath(cursor.location.file.name):
+            self.current_file_name = realpath(cursor.location.file.name)
             with open(self.current_file_name) as f:
                 self.current_file_lines = f.readlines()
 
@@ -197,7 +199,7 @@ class Etags:
         return out.getvalue()
 
 
-class Ctags:
+class Ctags(object):
     """Write tags in the format understood by Vi.
 
     Currently generates the basic, original vi format (what the
@@ -214,8 +216,8 @@ class Ctags:
         self.current_file_lines = None
 
     def tag(self, cursor, tagname):
-        if self.current_file_name != os.path.realpath(cursor.location.file.name):
-            self.current_file_name = os.path.realpath(cursor.location.file.name)
+        if self.current_file_name != realpath(cursor.location.file.name):
+            self.current_file_name = realpath(cursor.location.file.name)
             with open(self.current_file_name) as f:
                 self.current_file_lines = f.readlines()
 
@@ -230,12 +232,14 @@ class Ctags:
 
     def getvalue(self):
         out = StringIO.StringIO()
-        out.write("!_TAG_FILE_FORMAT\t1\t/basic format; no extension fields/\n")
-        out.write("!_TAG_FILE_SORTED\t0\t/0=unsorted, 1=sorted, 2=foldcase/\n")
-        out.write("!_TAG_PROGRAM_NAME\tclang-ctags\t//\n")
-        out.write("!_TAG_PROGRAM_URL\thttp://github.com/drothlis/clang-ctags\t//\n")
+        out.write(dedent("""\
+            !_TAG_FILE_FORMAT\t1\t/basic format; no extension fields/
+            !_TAG_FILE_SORTED\t0\t/0=unsorted, 1=sorted, 2=foldcase/
+            !_TAG_PROGRAM_NAME\tclang-ctags\t//
+            !_TAG_PROGRAM_URL\thttp://github.com/drothlis/clang-ctags\t//
+            """))
         for f in self.tags:
-            for (line, t, n, _) in self.tags[f]:
+            for (line, t, _n, _) in self.tags[f]:
                 out.write("%s\t%s\t%s\n" % (
                     t,
                     f,
@@ -243,28 +247,23 @@ class Ctags:
         return out.getvalue()
 
 
-class cwd:
+@contextmanager
+def cwd(directory):
     """Run a block of code from a specified working directory"""
-    def __init__(self, dir):
-        self.dir = dir
-
-    def __enter__(self):
-        self.old_dir = os.getcwd()
-        os.chdir(self.dir)
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        os.chdir(self.old_dir)
+    old_dir = os.getcwd()
+    os.chdir(directory)
+    try:
+        yield
+    finally:
+        os.chdir(old_dir)
 
 
 def parse_args(argv):
-    import argparse
-    import re
-
     parser = argparse.ArgumentParser(
         description="Generate tag file for C++ source code.",
         usage="\nclang-ctags [options] -- <compiler command line>"
-              "\nclang-ctags [options] --compile-commands=<compile_commands.json>"
-              " <source-file> ...")
+              "\nclang-ctags [options] "
+              "--compile-commands=<compile_commands.json> <source-file> ...")
     parser.add_argument("-e", action="store_true",
                         help='output tags in Emacs format (default: vi format)'
                              ' (implied if the program name contains "etags")')
@@ -313,10 +312,10 @@ def debug(s):
         sys.stderr.write(s + "\n")
 
 def warn(s):
-    sys.stderr.write("%s: Warning: %s\n" % (os.path.basename(sys.argv[0]), s))
+    sys.stderr.write("%s: Warning: %s\n" % (basename(sys.argv[0]), s))
 
 def error(s):
-    sys.stderr.write("%s: Error: %s\n" % (os.path.basename(sys.argv[0]), s))
+    sys.stderr.write("%s: Error: %s\n" % (basename(sys.argv[0]), s))
     sys.exit(1)
 
 
