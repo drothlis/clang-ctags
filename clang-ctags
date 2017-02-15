@@ -22,8 +22,7 @@ def main(argv):
     global args, invocation_dir  # pylint:disable=global-variable-undefined
     args = parse_args(argv)
     invocation_dir = os.getcwd()
-
-    formatter = Etags() if args.etags else Ctags()
+    tagger = Tagger()
 
     if args.compile_commands:
         db_dir = (args.compile_commands if isdir(args.compile_commands)
@@ -36,15 +35,17 @@ def main(argv):
                 debug("* Found compile command: " + " ".join(list(c.arguments)))
                 with cwd(join(db_dir, c.directory)):
                     debug("  run from directory: " + os.getcwd())
-                    do_tags(list(c.arguments)[1:], formatter, source_files)
+                    do_tags(list(c.arguments)[1:], tagger, source_files)
     else:
-        do_tags(args.compiler_command_line, formatter)
+        do_tags(args.compiler_command_line, tagger)
 
     if args.output == "-":
         out = sys.stdout
     else:
         out = open(args.output, ("a" if args.append else "w") + "b")
-    out.write(formatter.getvalue())
+
+    formatter = etags if args.etags else ctags
+    out.write(formatter(tagger.tags))
 
 
 def clang_default_include():
@@ -55,7 +56,7 @@ def clang_default_include():
     return next(line.strip() for line in out.split('\n') if reg.search(line))
 
 
-def do_tags(compiler_command_line, formatter, source_files=None):
+def do_tags(compiler_command_line, tagger, source_files=None):
     index = clang.cindex.Index.create()
 
     compiler_command_line = ['-I', clang_default_include()] + \
@@ -81,28 +82,28 @@ def do_tags(compiler_command_line, formatter, source_files=None):
 
     start = time.time()
     for c in tu.cursor.get_children():
-        do_cursor(c, formatter, source_files)
+        do_cursor(c, tagger, source_files)
     debug("  tag generation took %.2fs" % (time.time() - start))
 
 
-def do_cursor(cursor, formatter, source_files):
+def do_cursor(cursor, tagger, source_files):
     if not should_tag_file(cursor.location.file, source_files):
         return
 
     if is_definition(cursor):
         parents = semantic_parents(cursor)
         if args.extra_qualifier_tags:
-            formatter.tag(
+            tagger.tag(
                 cursor, "::" + "::".join(parents + [cursor.displayname]))
             for i in range(len(parents) + 1):
-                formatter.tag(
+                tagger.tag(
                     cursor, "::".join(parents[i:] + [cursor.displayname]))
         else:
-            formatter.tag(cursor, "::".join(parents + [cursor.displayname]))
+            tagger.tag(cursor, "::".join(parents + [cursor.displayname]))
 
     if should_tag_children(cursor):
         for c in cursor.get_children():
-            do_cursor(c, formatter, source_files)
+            do_cursor(c, tagger, source_files)
 
 
 def should_tag_file(f, source_files):
@@ -163,12 +164,7 @@ def is_named_scope(cursor):
         ]
 
 
-class Etags(object):
-    """Write tags in the format understood by Emacs.
-
-    See http://bzr.savannah.gnu.org/lh/emacs/trunk/annotate/head:/etc/ETAGS.EBNF
-    """
-
+class Tagger(object):
     def __init__(self):
         self.tags = {}  # {file: [(line, tag, linenumber, bytenumber), ...]}
         self.current_file_name = None
@@ -190,16 +186,21 @@ class Etags(object):
             cursor.location.line,
             cursor.location.offset))
 
-    def getvalue(self):
-        out = StringIO.StringIO()
-        for f in self.tags:
-            out.write("\x0c\x0a" + f + ",\x0a")
-            for t in self.tags[f]:
-                out.write("%s\x7f%s\x01%d,%d\x0a" % t)
-        return out.getvalue()
+
+def etags(tags):
+    """Write tags in the format understood by Emacs.
+
+    See http://bzr.savannah.gnu.org/lh/emacs/trunk/annotate/head:/etc/ETAGS.EBNF
+    """
+    out = StringIO.StringIO()
+    for f in tags:
+        out.write("\x0c\x0a" + f + ",\x0a")
+        for t in tags[f]:
+            out.write("%s\x7f%s\x01%d,%d\x0a" % t)
+    return out.getvalue()
 
 
-class Ctags(object):
+def ctags(tags):
     """Write tags in the format understood by Vi.
 
     Currently generates the basic, original vi format (what the
@@ -209,42 +210,20 @@ class Ctags(object):
     The man page for Exuberant Ctags (http://ctags.sourceforge.net)
     documents the tags file format.
     """
-
-    def  __init__(self):
-        self.tags = {}  # {file: [(line, tag, linenumber, bytenumber), ...]}
-        self.current_file_name = None
-        self.current_file_lines = None
-
-    def tag(self, cursor, tagname):
-        if self.current_file_name != realpath(cursor.location.file.name):
-            self.current_file_name = realpath(cursor.location.file.name)
-            with open(self.current_file_name) as f:
-                self.current_file_lines = f.readlines()
-
-        if self.current_file_name not in self.tags:
-            self.tags[self.current_file_name] = set()
-
-        self.tags[self.current_file_name].add((
-            self.current_file_lines[cursor.location.line - 1].rstrip(),
-            tagname,
-            cursor.location.line,
-            cursor.location.offset))
-
-    def getvalue(self):
-        out = StringIO.StringIO()
-        out.write(dedent("""\
-            !_TAG_FILE_FORMAT\t1\t/basic format; no extension fields/
-            !_TAG_FILE_SORTED\t0\t/0=unsorted, 1=sorted, 2=foldcase/
-            !_TAG_PROGRAM_NAME\tclang-ctags\t//
-            !_TAG_PROGRAM_URL\thttp://github.com/drothlis/clang-ctags\t//
-            """))
-        for f in self.tags:
-            for (line, t, _n, _) in self.tags[f]:
-                out.write("%s\t%s\t%s\n" % (
-                    t,
-                    f,
-                    "/^%s$/" % line))
-        return out.getvalue()
+    out = StringIO.StringIO()
+    out.write(dedent("""\
+        !_TAG_FILE_FORMAT\t1\t/basic format; no extension fields/
+        !_TAG_FILE_SORTED\t0\t/0=unsorted, 1=sorted, 2=foldcase/
+        !_TAG_PROGRAM_NAME\tclang-ctags\t//
+        !_TAG_PROGRAM_URL\thttp://github.com/drothlis/clang-ctags\t//
+        """))
+    for f in tags:
+        for (line, t, _n, _) in tags[f]:
+            out.write("%s\t%s\t%s\n" % (
+                t,
+                f,
+                "/^%s$/" % line))
+    return out.getvalue()
 
 
 @contextmanager
